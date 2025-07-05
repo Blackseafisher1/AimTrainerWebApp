@@ -306,7 +306,57 @@
       color: #ff6b6b;
     }
     
+    /* Mobile and Tablet Optimizations */
+    @media (max-width: 1024px) {
+      /* General adjustments for tablets */
+      h1 {
+        font-size: 2.4rem;
+      }
+      
+      #game-area {
+        height: 60vh;
+      }
+      
+      /* Target optimizations for touch devices */
+      .target {
+        border-width: 15px;
+        box-shadow: 0px 0px 40px yellow;
+        /* Remove hover effects on touch devices */
+        &:hover {
+          box-shadow: 0px 0px 40px yellow;
+          border: 15px solid rgb(189, 0, 0);
+          background-color: red;
+        }
+      }
+      
+      /* Make active state more visible on touch */
+      .target:active {
+        background-color: rgb(66, 5, 5);
+        border: 15px dashed rgb(53, 0, 0);
+        box-shadow: 0px 0px 60px white;
+      }
+    }
+    
+    @media (max-width: 768px) {
+      /* Tablet-specific adjustments */
+      .target {
+        border-width: 12px;
+        box-shadow: 0px 0px 30px yellow;
+      }
+      
+      .target:active {
+        border-width: 12px;
+      }
+      
+      /* Adjust target sizes for better touch accuracy */
+      .target {
+        min-width: 80px;
+        min-height: 80px;
+      }
+    }
+    
     @media (max-width: 600px) {
+      /* Mobile phone optimizations */
       #controls {
         flex-direction: column;
         align-items: center;
@@ -323,6 +373,7 @@
       
       h1 {
         font-size: 2.2rem;
+        margin: 10px 0;
       }
       
       .info-item span {
@@ -330,13 +381,54 @@
       }
       
       #game-area {
-        height: 60vh;
+        height: 55vh;
+      }
+      
+      /* Mobile target optimizations */
+      .target {
+        border-width: 10px;
+        box-shadow: 0px 0px 25px yellow;
+        /* Increase minimum size for better touch targets */
+        min-width: 70px;
+        min-height: 70px;
+      }
+      
+      .target:active {
+        border-width: 10px;
+      }
+      
+      /* Adjust sizes array in JS to match these changes */
+      /* This will be handled in the JavaScript media query */
+    }
+    
+    /* Very small devices */
+    @media (max-width: 400px) {
+      .target {
+        border-width: 8px;
+        box-shadow: 0px 0px 20px yellow;
+        min-width: 60px;
+        min-height: 60px;
+      }
+      
+      .target:active {
+        border-width: 8px;
+      }
+    }
+    
+    /* Detect touch devices and adjust hover behavior */
+    @media (hover: none) {
+      .target:hover {
+        /* Disable hover effects completely on touch devices */
+        box-shadow: 0px 0px 50px yellow;
+        border: 20px solid rgb(189, 0, 0);
+        background-color: red;
       }
     }
   </style>
 </head>
 <body>
 
+<!-- Rest of your HTML remains the same -->
 <h1>Aim Trainer</h1>
 
 <div id="game-area"></div>
@@ -394,394 +486,434 @@
   </div>
 </div>
 
-<script>
-  const gameArea = document.getElementById('game-area');
-  const timeDisplay = document.getElementById('time');
-  const scoreDisplay = document.getElementById('score');
-  const missclicksDisplay = document.getElementById('missclicks');
-  const bestScoreDisplay = document.getElementById('best-score');
-  const sizeBtn = document.getElementById('size-btn');
-  const stopBtn = document.getElementById('stop-btn');
-  const modeBtn = document.getElementById('mode-btn');
-  const modeDisplay = document.getElementById('mode-display');
-  const timeItem = document.getElementById('time-item');
-  const soundFileInput = document.getElementById('sound-file');
-  const resetSoundBtn = document.getElementById('reset-sound');
-  const soundPreview = document.getElementById('sound-preview');
-  const soundVolume = document.getElementById('sound-volume');
-  const volumeValue = document.getElementById('volume-value');
-  const soundStatus = document.getElementById('sound-status');
+        <script>
+const gameArea = document.getElementById('game-area');
+const timeDisplay = document.getElementById('time');
+const scoreDisplay = document.getElementById('score');
+const missclicksDisplay = document.getElementById('missclicks');
+const bestScoreDisplay = document.getElementById('best-score');
+const sizeBtn = document.getElementById('size-btn');
+const stopBtn = document.getElementById('stop-btn');
+const modeBtn = document.getElementById('mode-btn');
+const modeDisplay = document.getElementById('mode-display');
+const timeItem = document.getElementById('time-item');
+const soundFileInput = document.getElementById('sound-file');
+const resetSoundBtn = document.getElementById('reset-sound');
+const soundPreview = document.getElementById('sound-preview');
+const soundVolume = document.getElementById('sound-volume');
+const volumeValue = document.getElementById('volume-value');
+const soundStatus = document.getElementById('sound-status');
 
-  // Audio variables
-  let customSound = null;
-  let defaultSoundEnabled = true;
-  let volume = 0.5;
+// Audio variables
+let customSound = null;
+let defaultSoundEnabled = true;
+let volume = 0.5;
 
-  // Load saved sound from localStorage if available
-  if (localStorage.getItem('aimTrainerSound')) {
+// Check if mobile device
+const isMobile = /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+
+// Adjust target sizes based on device
+let sizes;
+if (isMobile) {
+  // Smaller size options for mobile
+  sizes = [40, 60, 80, 100];
+} else {
+  // Original size options for desktop
+  sizes = [50, 70, 100, 150];
+}
+
+// Load saved sound from localStorage if available
+if (localStorage.getItem('aimTrainerSound')) {
+  try {
+    const soundData = localStorage.getItem('aimTrainerSound');
+    customSound = new Audio();
+    customSound.src = soundData;
+    soundPreview.textContent = "Custom sound loaded";
+    soundPreview.style.color = "#06d6a0";
+  } catch (e) {
+    console.error("Error loading custom sound:", e);
+    soundPreview.textContent = "Error loading custom sound";
+    soundPreview.style.color = "#ff6b6b";
+  }
+}
+
+// Load volume setting
+if (localStorage.getItem('aimTrainerVolume')) {
+  volume = parseFloat(localStorage.getItem('aimTrainerVolume'));
+  soundVolume.value = volume;
+  volumeValue.textContent = Math.round(volume * 100) + '%';
+}
+
+// Volume control
+soundVolume.addEventListener('input', () => {
+  volume = parseFloat(soundVolume.value);
+  volumeValue.textContent = Math.round(volume * 100) + '%';
+  localStorage.setItem('aimTrainerVolume', volume);
+});
+
+// Toggle sound status
+soundStatus.addEventListener('click', () => {
+  defaultSoundEnabled = !defaultSoundEnabled;
+  updateSoundStatus();
+});
+
+function updateSoundStatus() {
+  if (defaultSoundEnabled) {
+    soundStatus.textContent = "Sound: ON";
+    soundStatus.className = "active";
+  } else {
+    soundStatus.textContent = "Sound: OFF";
+    soundStatus.className = "inactive";
+  }
+}
+
+// Handle sound file upload
+soundFileInput.addEventListener('change', (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+
+  // Validate file type
+  if (!file.type.startsWith('audio/')) {
+    soundPreview.textContent = "Invalid file type. Please upload an audio file.";
+    soundPreview.style.color = "#ff6b6b";
+    return;
+  }
+
+  // Preview file name
+  soundPreview.textContent = file.name;
+  soundPreview.style.color = "#aaa";
+
+  // Read file as data URL
+  const reader = new FileReader();
+  reader.onload = (event) => {
     try {
-      const soundData = localStorage.getItem('aimTrainerSound');
+      // Save to localStorage
+      localStorage.setItem('aimTrainerSound', event.target.result);
+      
+      // Create audio object
       customSound = new Audio();
-      customSound.src = soundData;
-      soundPreview.textContent = "Custom sound loaded";
+      customSound.src = event.target.result;
+      
+      soundPreview.textContent = "Sound loaded: " + file.name;
       soundPreview.style.color = "#06d6a0";
-    } catch (e) {
-      console.error("Error loading custom sound:", e);
-      soundPreview.textContent = "Error loading custom sound";
+    } catch (error) {
+      console.error("Error loading sound file:", error);
+      soundPreview.textContent = "Error loading sound file";
       soundPreview.style.color = "#ff6b6b";
     }
-  }
+  };
+  reader.readAsDataURL(file);
+});
 
-  // Load volume setting
-  if (localStorage.getItem('aimTrainerVolume')) {
-    volume = parseFloat(localStorage.getItem('aimTrainerVolume'));
-    soundVolume.value = volume;
-    volumeValue.textContent = Math.round(volume * 100) + '%';
-  }
+// Reset sound to default
+resetSoundBtn.addEventListener('click', () => {
+  localStorage.removeItem('aimTrainerSound');
+  customSound = null;
+  soundPreview.textContent = "Using default sound";
+  soundPreview.style.color = "#ffd166";
+});
 
-  // Volume control
-  soundVolume.addEventListener('input', () => {
-    volume = parseFloat(soundVolume.value);
-    volumeValue.textContent = Math.round(volume * 100) + '%';
-    localStorage.setItem('aimTrainerVolume', volume);
-  });
-
-  // Toggle sound status
-  soundStatus.addEventListener('click', () => {
-    defaultSoundEnabled = !defaultSoundEnabled;
-    updateSoundStatus();
-  });
-
-  function updateSoundStatus() {
-    if (defaultSoundEnabled) {
-      soundStatus.textContent = "Sound: ON";
-      soundStatus.className = "active";
-    } else {
-      soundStatus.textContent = "Sound: OFF";
-      soundStatus.className = "inactive";
-    }
-  }
-
-  // Handle sound file upload
-  soundFileInput.addEventListener('change', (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-
-    // Validate file type
-    if (!file.type.startsWith('audio/')) {
-      soundPreview.textContent = "Invalid file type. Please upload an audio file.";
-      soundPreview.style.color = "#ff6b6b";
+// Sound effect function
+function playHitSound() {
+  if (!defaultSoundEnabled) return;
+  
+  try {
+    // Try to play custom sound if available
+    if (customSound) {
+      const soundClone = new Audio(customSound.src);
+      soundClone.volume = volume;
+      soundClone.play().catch(e => console.log("Custom sound play error:", e));
       return;
     }
-
-    // Preview file name
-    soundPreview.textContent = file.name;
-    soundPreview.style.color = "#aaa";
-
-    // Read file as data URL
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      try {
-        // Save to localStorage
-        localStorage.setItem('aimTrainerSound', event.target.result);
-        
-        // Create audio object
-        customSound = new Audio();
-        customSound.src = event.target.result;
-        
-        soundPreview.textContent = "Sound loaded: " + file.name;
-        soundPreview.style.color = "#06d6a0";
-      } catch (error) {
-        console.error("Error loading sound file:", error);
-        soundPreview.textContent = "Error loading sound file";
-        soundPreview.style.color = "#ff6b6b";
-      }
-    };
-    reader.readAsDataURL(file);
-  });
-
-  // Reset sound to default
-  resetSoundBtn.addEventListener('click', () => {
-    localStorage.removeItem('aimTrainerSound');
-    customSound = null;
-    soundPreview.textContent = "Using default sound";
-    soundPreview.style.color = "#ffd166";
-  });
-
-  // Sound effect function
-  function playHitSound() {
-    if (!defaultSoundEnabled) return;
     
-    try {
-      // Try to play custom sound if available
-      if (customSound) {
-        const soundClone = new Audio(customSound.src);
-        soundClone.volume = volume;
-        soundClone.play().catch(e => console.log("Custom sound play error:", e));
-        return;
-      }
-      
-      // Fallback to default sound
-      const context = new (window.AudioContext || window.webkitAudioContext)();
-      const oscillator = context.createOscillator();
-      const gainNode = context.createGain();
-      
-      oscillator.connect(gainNode);
-      gainNode.connect(context.destination);
-      
-      oscillator.type = 'sine';
-      oscillator.frequency.value = 880; // A5 note
-      gainNode.gain.value = volume * 0.3;
-      
-      oscillator.start();
-      
-      // Create a quick fade out
-      gainNode.gain.exponentialRampToValueAtTime(0.001, context.currentTime + 0.15);
-      
-      setTimeout(() => {
-        oscillator.stop();
-      }, 150);
-    } catch (e) {
-      console.log("Audio not supported in this environment");
-    }
-  }
-  
-  // Create visual hit effect
-  function createHitEffect(x, y, size) {
-    const effect = document.createElement('div');
-    effect.className = 'hit-effect';
-    effect.style.left = `${x - size/2}px`;
-    effect.style.top = `${y - size/2}px`;
-    effect.style.width = `${size}px`;
-    effect.style.height = `${size}px`;
-    gameArea.appendChild(effect);
+    // Fallback to default sound
+    const context = new (window.AudioContext || window.webkitAudioContext)();
+    const oscillator = context.createOscillator();
+    const gainNode = context.createGain();
+    
+    oscillator.connect(gainNode);
+    gainNode.connect(context.destination);
+    
+    oscillator.type = 'sine';
+    oscillator.frequency.value = 880; // A5 note
+    gainNode.gain.value = volume * 0.3;
+    
+    oscillator.start();
+    
+    // Create a quick fade out
+    gainNode.gain.exponentialRampToValueAtTime(0.001, context.currentTime + 0.15);
     
     setTimeout(() => {
-      gameArea.removeChild(effect);
-    }, 600);
+      oscillator.stop();
+    }, 150);
+  } catch (e) {
+    console.log("Audio not supported in this environment");
   }
+}
 
-  const roundTime = 60;
-  let timeLeft = roundTime;
-  let score = 0;
-  let missClicks = 0;
-  let bestScore = 0;
-  let intervalId = null;
-  let roundStarted = false;
-  const sizes = [50, 70, 100, 150];
-  let currentSizeIndex = 3;
+// Create visual hit effect
+function createHitEffect(x, y, size) {
+  const effect = document.createElement('div');
+  effect.className = 'hit-effect';
+  effect.style.left = `${x - size/2}px`;
+  effect.style.top = `${y - size/2}px`;
+  effect.style.width = `${size}px`;
+  effect.style.height = `${size}px`;
+  gameArea.appendChild(effect);
+  
+  setTimeout(() => {
+    gameArea.removeChild(effect);
+  }, 600);
+}
 
-  let mode = 'single'; // 'single' or 'multi'
-  let targets = [];
-  let lastPositions = [];
+const roundTime = 60;
+let timeLeft = roundTime;
+let score = 0;
+let missClicks = 0;
+let bestScore = 0;
+let intervalId = null;
+let roundStarted = false;
+let currentSizeIndex = isMobile ? 2 : 3; // Start with medium size on mobile
 
-  const settings = {
-    single: { count: 1, radius: 400},
-    multi: { count: 3, radius: 300 }
-  };
+let mode = 'single'; // 'single' or 'multi'
+let targets = [];
+let lastPositions = [];
 
-  if (localStorage.getItem('bestAimScore')) {
-    bestScore = parseInt(localStorage.getItem('bestAimScore'));
-    bestScoreDisplay.textContent = bestScore;
+const settings = {
+  single: { count: 1, radius: isMobile ? 300 : 400 },
+  multi: { count: 3, radius: isMobile ? 200 : 300 }
+};
+
+if (localStorage.getItem('bestAimScore')) {
+  bestScore = parseInt(localStorage.getItem('bestAimScore'));
+  bestScoreDisplay.textContent = bestScore;
+}
+
+function updateDisplays() {
+  scoreDisplay.textContent = score;
+  missclicksDisplay.textContent = missClicks;
+  timeDisplay.textContent = timeLeft;
+  modeDisplay.textContent = mode === 'single' ? 'Single' : 'Multi';
+  
+  // Add pulse animation to score when it changes
+  scoreDisplay.parentElement.classList.remove('pulse');
+  void scoreDisplay.parentElement.offsetWidth; // Trigger reflow
+  scoreDisplay.parentElement.classList.add('pulse');
+  
+  // Flash time when below 10 seconds
+  if (timeLeft < 11) {
+    timeItem.style.animation = 'pulse 0.8s infinite';
+    timeItem.style.background = 'rgba(255, 50, 50, 0.3)';
+  } else {
+    timeItem.style.animation = '';
+    timeItem.style.background = '';
   }
+}
 
-  function updateDisplays() {
-    scoreDisplay.textContent = score;
-    missclicksDisplay.textContent = missClicks;
-    timeDisplay.textContent = timeLeft;
-    modeDisplay.textContent = mode === 'single' ? 'Single' : 'Multi';
-    
-    // Add pulse animation to score when it changes
-    scoreDisplay.parentElement.classList.remove('pulse');
-    void scoreDisplay.parentElement.offsetWidth; // Trigger reflow
-    scoreDisplay.parentElement.classList.add('pulse');
-    
-    // Flash time when below 10 seconds
-    if (timeLeft < 11) {
-      timeItem.style.animation = 'pulse 0.8s infinite';
-      timeItem.style.background = 'rgba(255, 50, 50, 0.3)';
-    } else {
-      timeItem.style.animation = '';
-      timeItem.style.background = '';
-    }
-  }
+function getNonOverlappingPosition(size, existing, radius) {
+  const areaRect = gameArea.getBoundingClientRect();
+  const centerX = areaRect.width / 2;
+  const centerY = areaRect.height / 2;
+  const maxLeft = areaRect.width - size;
+  const maxTop = areaRect.height - size;
 
-  function getNonOverlappingPosition(size, existing, radius) {
-    const areaRect = gameArea.getBoundingClientRect();
-    const centerX = areaRect.width / 2;
-    const centerY = areaRect.height / 2;
-    const maxLeft = areaRect.width - size;
-    const maxTop = areaRect.height - size;
+  let tries = 100;
+  while (tries-- > 0) {
+    const angle = Math.random() * 2 * Math.PI;
+    const distance = Math.random() * radius;
+    let left = centerX + Math.cos(angle) * distance - size / 2;
+    let top = centerY + Math.sin(angle) * distance - size / 2;
 
-    let tries = 100;
-    while (tries-- > 0) {
-      const angle = Math.random() * 2 * Math.PI;
-      const distance = Math.random() * radius;
-      let left = centerX + Math.cos(angle) * distance - size / 2;
-      let top = centerY + Math.sin(angle) * distance - size / 2;
+    left = Math.min(Math.max(0, left), maxLeft);
+    top = Math.min(Math.max(0, top), maxTop);
 
-      left = Math.min(Math.max(0, left), maxLeft);
-      top = Math.min(Math.max(0, top), maxTop);
-
-      let overlapping = existing.some(pos => {
-        let dx = pos.left - left;
-        let dy = pos.top - top;
-        return Math.sqrt(dx * dx + dy * dy) < size;
-      });
-
-      if (!overlapping) return { left, top };
-    }
-
-    // fallback
-    return { left: Math.random() * maxLeft, top: Math.random() * maxTop };
-  }
-
-  function moveTargetToNewPosition(targetIndex) {
-    const size = sizes[currentSizeIndex];
-    const radius = settings[mode].radius;
-    const areaRect = gameArea.getBoundingClientRect();
-    const centerX = areaRect.width / 2;
-    const centerY = areaRect.height / 2;
-    const existing = lastPositions.filter((_, i) => i !== targetIndex);
-    const pos = getNonOverlappingPosition(size, existing, radius);
-    lastPositions[targetIndex] = pos;
-    targets[targetIndex].style.left = pos.left + 'px';
-    targets[targetIndex].style.top = pos.top + 'px';
-  }
-
-  function teleportAllTargets() {
-    const size = sizes[currentSizeIndex];
-    const radius = settings[mode].radius;
-    lastPositions = [];
-
-    targets.forEach((target, i) => {
-      const pos = getNonOverlappingPosition(size, lastPositions, radius);
-      lastPositions.push(pos);
-      target.style.left = pos.left + 'px';
-      target.style.top = pos.top + 'px';
+    let overlapping = existing.some(pos => {
+      let dx = pos.left - left;
+      let dy = pos.top - top;
+      return Math.sqrt(dx * dx + dy * dy) < size;
     });
+
+    if (!overlapping) return { left, top };
   }
 
-  function createTargets() {
-    targets.forEach(t => t.remove());
-    targets = [];
+  // fallback
+  return { left: Math.random() * maxLeft, top: Math.random() * maxTop };
+}
 
-    const count = settings[mode].count;
-    const size = sizes[currentSizeIndex];
+function moveTargetToNewPosition(targetIndex) {
+  const size = sizes[currentSizeIndex];
+  const radius = settings[mode].radius;
+  const areaRect = gameArea.getBoundingClientRect();
+  const centerX = areaRect.width / 2;
+  const centerY = areaRect.height / 2;
+  const existing = lastPositions.filter((_, i) => i !== targetIndex);
+  const pos = getNonOverlappingPosition(size, existing, radius);
+  lastPositions[targetIndex] = pos;
+  targets[targetIndex].style.left = pos.left + 'px';
+  targets[targetIndex].style.top = pos.top + 'px';
+}
 
-    for (let i = 0; i < count; i++) {
-      const btn = document.createElement('button');
-      btn.className = 'target';
-      btn.style.width = size + 'px';
-      btn.style.height = size + 'px';
+function teleportAllTargets() {
+  const size = sizes[currentSizeIndex];
+  const radius = settings[mode].radius;
+  lastPositions = [];
 
-      btn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        
-        // Play sound effect
-        playHitSound();
-        
-        // Create visual effect
-        const rect = btn.getBoundingClientRect();
-        const areaRect = gameArea.getBoundingClientRect();
-        createHitEffect(
-          rect.left - areaRect.left + size/2, 
-          rect.top - areaRect.top + size/2,
-          size
-        );
-        
-        if (!roundStarted) {
-          startRound();
-        } else {
-          score++;
-          updateDisplays();
+  targets.forEach((target, i) => {
+    const pos = getNonOverlappingPosition(size, lastPositions, radius);
+    lastPositions.push(pos);
+    target.style.left = pos.left + 'px';
+    target.style.top = pos.top + 'px';
+  });
+}
 
-          if (mode === 'multi') {
-            moveTargetToNewPosition(i); // Nur dieses Ziel bewegen
-          } else {
-            teleportAllTargets(); // Einzelmodus: alles neu platzieren
-          }
-        }
+function createTargets() {
+  targets.forEach(t => t.remove());
+  targets = [];
+
+  const count = settings[mode].count;
+  const size = sizes[currentSizeIndex];
+
+  for (let i = 0; i < count; i++) {
+    const btn = document.createElement('button');
+    btn.className = 'target';
+    btn.style.width = size + 'px';
+    btn.style.height = size + 'px';
+
+    // Add touch-specific event listeners for mobile
+    if (isMobile) {
+      btn.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        handleTargetClick(e, btn, size, i);
       });
-
-      gameArea.appendChild(btn);
-      targets.push(btn);
     }
 
-    teleportAllTargets();
+    btn.addEventListener('click', (e) => {
+      handleTargetClick(e, btn, size, i);
+    });
+
+    gameArea.appendChild(btn);
+    targets.push(btn);
   }
 
-  function startRound() {
-    if (roundStarted) return;
-    roundStarted = true;
+  teleportAllTargets();
+}
 
-    timeLeft = roundTime;
-    score = 0;
-    missClicks = 0;
+function handleTargetClick(e, btn, size, index) {
+  e.stopPropagation();
+  
+  // Play sound effect
+  playHitSound();
+  
+  // Create visual effect
+  const rect = btn.getBoundingClientRect();
+  const areaRect = gameArea.getBoundingClientRect();
+  createHitEffect(
+    rect.left - areaRect.left + size/2, 
+    rect.top - areaRect.top + size/2,
+    size
+  );
+  
+  if (!roundStarted) {
+    startRound();
+  } else {
+    score++;
     updateDisplays();
 
-    intervalId = setInterval(() => {
-      timeLeft--;
-      updateDisplays();
-
-      if (timeLeft <= 0) {
-        endRound();
-      }
-    }, 1000);
-  }
-
-  function endRound() {
-    clearInterval(intervalId);
-    intervalId = null;
-    roundStarted = false;
-
-    let finalScore = score - missClicks;
-    if (finalScore < 0) finalScore = 0;
-
-    alert(`Round over! Your score: ${score} - Missclicks: ${missClicks} = Final score: ${finalScore}`);
-
-    if (finalScore > bestScore) {
-      bestScore = finalScore;
-      bestScoreDisplay.textContent = bestScore;
-      localStorage.setItem('bestAimScore', bestScore);
-      alert('New Best Score!');
+    if (mode === 'multi') {
+      moveTargetToNewPosition(index);
+    } else {
+      teleportAllTargets();
     }
   }
+}
 
-  gameArea.addEventListener('click', () => {
-    if (roundStarted) {
+function startRound() {
+  if (roundStarted) return;
+  roundStarted = true;
+
+  timeLeft = roundTime;
+  score = 0;
+  missClicks = 0;
+  updateDisplays();
+
+  intervalId = setInterval(() => {
+    timeLeft--;
+    updateDisplays();
+
+    if (timeLeft <= 0) {
+      endRound();
+    }
+  }, 1000);
+}
+
+function endRound() {
+  clearInterval(intervalId);
+  intervalId = null;
+  roundStarted = false;
+
+  let finalScore = score - missClicks;
+  if (finalScore < 0) finalScore = 0;
+
+  alert(`Round over! Your score: ${score} - Missclicks: ${missClicks} = Final score: ${finalScore}`);
+
+  if (finalScore > bestScore) {
+    bestScore = finalScore;
+    bestScoreDisplay.textContent = bestScore;
+    localStorage.setItem('bestAimScore', bestScore);
+    alert('New Best Score!');
+  }
+}
+
+gameArea.addEventListener('click', () => {
+  if (roundStarted) {
+    missClicks++;
+    updateDisplays();
+  }
+});
+
+// Add touch event for miss clicks on mobile
+if (isMobile) {
+  gameArea.addEventListener('touchstart', (e) => {
+    if (roundStarted && e.target === gameArea) {
       missClicks++;
       updateDisplays();
     }
   });
+}
 
-  sizeBtn.addEventListener('click', () => {
-    currentSizeIndex = (currentSizeIndex + 1) % sizes.length;
-    targets.forEach(target => {
-      target.style.width = sizes[currentSizeIndex] + 'px';
-      target.style.height = sizes[currentSizeIndex] + 'px';
-    });
-    teleportAllTargets();
+sizeBtn.addEventListener('click', () => {
+  currentSizeIndex = (currentSizeIndex + 1) % sizes.length;
+  targets.forEach(target => {
+    target.style.width = sizes[currentSizeIndex] + 'px';
+    target.style.height = sizes[currentSizeIndex] + 'px';
   });
+  teleportAllTargets();
+});
 
-  modeBtn.addEventListener('click', () => {
-    mode = mode === 'single' ? 'multi' : 'single';
-    createTargets();
-    updateDisplays();
-  });
-
-  stopBtn.addEventListener('click', () => {
-    if (roundStarted) {
-      endRound();
-    }
-  });
-
-  // Init
+modeBtn.addEventListener('click', () => {
+  mode = mode === 'single' ? 'multi' : 'single';
   createTargets();
   updateDisplays();
-  updateSoundStatus();
-  window.addEventListener('resize', teleportAllTargets);
-</script>
+});
 
-</body>
+stopBtn.addEventListener('click', () => {
+  if (roundStarted) {
+    endRound();
+  }
+});
+
+// Init
+createTargets();
+updateDisplays();
+updateSoundStatus();
+window.addEventListener('resize', teleportAllTargets);
+
+// Adjust for mobile orientation changes
+window.addEventListener('orientationchange', () => {
+  setTimeout(teleportAllTargets, 100);
+});
+    </script>
+ 
+  
+ </body>
 </html>
