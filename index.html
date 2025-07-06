@@ -581,6 +581,25 @@
     <div id="volume-value">50%</div>
     <div id="sound-status" class="active">Sound: ON</div>
    </div>
+
+          <!-- Add this below your sound controls -->
+<div id="ios-help" style="display: none; color: #ff6b6b; margin-top: 10px;">
+  <p>iOS Users: To upload audio files:</p>
+  <ol>
+    <li>Save files in the <strong>Files app</strong></li>
+    <li>Tap the <strong>"Browse"</strong> option</li>
+    <li>Navigate to your audio file</li>
+  </ol>
+</div>
+
+<script>
+// Show iOS help message
+if (/iPad|iPhone|iPod/.test(navigator.userAgent)) {
+  document.getElementById('ios-help').style.display = 'block';
+}
+</script>
+
+    
   </div>
    
   
