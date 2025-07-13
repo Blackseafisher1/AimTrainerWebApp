@@ -1332,6 +1332,7 @@ function handleTargetClick(e, btn, size, index) {
 function startRound() {
   document.body.style.overflow = 'hidden'; 
  document.documentElement.style.overflow =='hidden';
+   document.html.style.overflow = 'hidden'; 
 
   if (roundStarted) return;
   roundStarted = true;
@@ -1363,6 +1364,7 @@ function startRound() {
 function endRound() {
  document.body.style.overflow = 'auto'; 
  document.documentElement.style.overflow =='auto';
+    document.html.style.overflow = 'auto'; 
 
 
   clearInterval(intervalId);
@@ -1446,6 +1448,9 @@ document.addEventListener('keydown', (e) => {
 if (isMobile) {
   gameArea.addEventListener('touchstart', (e) => {
     if (roundStarted && e.target === gameArea) {
+        document.html.style.overflow = 'hidden'; 
+        document.body.style.overflow = 'hidden'; 
+        document.documentElement.style.overflow =='hidden';
       missClicks++;
       totalShots++;
       combo = 0;
