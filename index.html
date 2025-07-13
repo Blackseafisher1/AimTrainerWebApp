@@ -1328,8 +1328,10 @@ function handleTargetClick(e, btn, size, index) {
     }
   }
 }
-
+const scrollPreventer = e => e.preventDefault();
+  
 function startRound() {
+   document.addEventListener('touchmove', scrollPreventer, { passive: false });
   document.body.style.overflow = 'hidden'; 
  document.documentElement.style.overflow =='hidden';
    document.html.style.overflow = 'hidden'; 
@@ -1362,6 +1364,7 @@ function startRound() {
 }
 
 function endRound() {
+  document.removeEventListener('touchmove', scrollPreventer, { passive: false });
  document.body.style.overflow = 'auto'; 
  document.documentElement.style.overflow =='auto';
     document.html.style.overflow = 'auto'; 
@@ -1448,9 +1451,6 @@ document.addEventListener('keydown', (e) => {
 if (isMobile) {
   gameArea.addEventListener('touchstart', (e) => {
     if (roundStarted && e.target === gameArea) {
-        document.html.style.overflow = 'hidden'; 
-        document.body.style.overflow = 'hidden'; 
-        document.documentElement.style.overflow =='hidden';
       missClicks++;
       totalShots++;
       combo = 0;
