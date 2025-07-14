@@ -1,0 +1,704 @@
+const gameArea = document.getElementById('game-area');
+const timeDisplay = document.getElementById('time');
+const scoreDisplay = document.getElementById('score');
+const missclicksDisplay = document.getElementById('missclicks');
+const bestScoreDisplay = document.getElementById('best-score');
+const sizeBtn = document.getElementById('size-btn');
+const stopBtn = document.getElementById('stop-btn');
+const modeBtn = document.getElementById('mode-btn');
+const modeDisplay = document.getElementById('mode-display');
+const timeItem = document.getElementById('time-item');
+const soundVolume = document.getElementById('sound-volume');
+const volumeValue = document.getElementById('volume-value');
+const soundStatus = document.getElementById('sound-status');
+const soundOptions = document.querySelectorAll('.sound-option');
+const resetSoundBtn = document.getElementById('reset-sound');
+const soundUpload = document.querySelector('#sound-upload-container input[type="file"]');
+
+const toggleTargetBtn = document.getElementById('toggle-target');
+
+const scrollPreventer = e => e.preventDefault();
+
+//worker varribles (position calc)
+const positionWorker = new Worker('positionWorker.js');
+const workerCallbacks = new Map();
+let requestId = 0;
+
+
+
+
+
+
+let mouseX = 0;
+let mouseY = 0;
+
+// Audio variables
+let currentSound = 'classic';
+let defaultSoundEnabled = true;
+let volume = 0.5;
+let customSound = null;
+let audioContext = null; // Single audio context for the app
+
+// Check if mobile device
+const isMobile = /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+
+// Adjust target sizes based on device
+let sizes;
+if (isMobile) {
+  sizes = [40, 60, 80, 100];
+} else {
+  sizes = [50, 70, 100, 150];
+}
+
+// Sound presets
+const soundPresets = {
+  classic: { freq: 880, duration: 0.15 },
+  beep: { freq: 440, duration: 0.1 },
+  pop: { freq: 660, duration: 0.08 },
+  laser: { freq: 1320, duration: 0.05 }
+};
+
+// Create single audio context on first interaction
+function createAudioContext() {
+  if (!audioContext) {
+    audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    console.log("AudioContext created");
+  }
+}
+
+// Resume audio context if suspended
+async function resumeAudioContext() {
+  if (!audioContext) {
+    createAudioContext();
+  }
+  
+  if (audioContext.state === 'suspended') {
+    try {
+      await audioContext.resume();
+      console.log("AudioContext resumed");
+    } catch (err) {
+      console.error("Failed to resume AudioContext:", err);
+    }
+  }
+}
+
+// Initialize audio context on any user interaction
+document.body.addEventListener('click', function() {
+  if (!audioContext) {
+    createAudioContext();
+  }
+});
+
+// Also initialize when the page becomes visible
+document.addEventListener('visibilitychange', function() {
+  if (document.visibilityState === 'visible' && audioContext) {
+    resumeAudioContext();
+  }
+});
+
+// Hide file input on mobile
+if (isMobile) {
+  soundUpload.style.display = 'none';
+}
+
+// Load sound preference from localStorage if available
+if (localStorage.getItem('aimTrainerSound')) {
+  currentSound = localStorage.getItem('aimTrainerSound');
+}
+
+// Load volume setting
+if (localStorage.getItem('aimTrainerVolume')) {
+  volume = parseFloat(localStorage.getItem('aimTrainerVolume'));
+  soundVolume.value = volume;
+  volumeValue.textContent = Math.round(volume * 100) + '%';
+}
+
+// Set active sound button
+function updateSoundButtons() {
+  soundOptions.forEach(option => {
+    if (option.dataset.sound === currentSound) {
+      option.classList.add('active');
+    } else {
+      option.classList.remove('active');
+    }
+  });
+}
+
+// Volume control
+soundVolume.addEventListener('input', () => {
+  volume = parseFloat(soundVolume.value);
+  volumeValue.textContent = Math.round(volume * 100) + '%';
+  localStorage.setItem('aimTrainerVolume', volume);
+});
+
+// Toggle sound status
+soundStatus.addEventListener('click', () => {
+  defaultSoundEnabled = !defaultSoundEnabled;
+  updateSoundStatus();
+});
+
+function updateSoundStatus() {
+  if (defaultSoundEnabled) {
+    soundStatus.textContent = "Sound: ON";
+    soundStatus.className = "active";
+  } else {
+    soundStatus.textContent = "Sound: OFF";
+    soundStatus.className = "inactive";
+  }
+}
+
+// Handle sound file upload
+soundUpload.addEventListener('change', async (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  
+  try {
+    await resumeAudioContext();
+    
+    const reader = new FileReader();
+    reader.onload = async function(e) {
+      try {
+        const arrayBuffer = e.target.result;
+        const decodedBuffer = await audioContext.decodeAudioData(arrayBuffer);
+        customSound = decodedBuffer;
+        currentSound = 'custom';
+        updateSoundButtons();
+        playHitSound(); // Play preview of uploaded sound
+      } catch (error) {
+        console.error('Error decoding audio data', error);
+        alert('Error loading audio file. Please try a different file.');
+      }
+    };
+    reader.readAsArrayBuffer(file);
+  } catch (err) {
+    console.error("Failed to initialize audio for upload:", err);
+    alert("Audio initialization failed. Please interact with the page and try again.");
+  }
+});
+
+// Sound effect function
+async function playHitSound() {
+  if (!defaultSoundEnabled || !audioContext) return;
+  
+  try {
+    await resumeAudioContext();
+    
+    if (currentSound === 'custom' && customSound) {
+      const source = audioContext.createBufferSource();
+      source.buffer = customSound;
+      
+      const gainNode = audioContext.createGain();
+      gainNode.gain.value = volume;
+      
+      source.connect(gainNode);
+      gainNode.connect(audioContext.destination);
+      source.start();
+    } else {
+      const sound = soundPresets[currentSound];
+      const oscillator = audioContext.createOscillator();
+      const gainNode = audioContext.createGain();
+      
+      oscillator.connect(gainNode);
+      gainNode.connect(audioContext.destination);
+      
+      oscillator.type = 'sine';
+      oscillator.frequency.value = sound.freq;
+      gainNode.gain.value = volume * 0.3;
+      
+      oscillator.start();
+      
+      // Create a quick fade out
+      gainNode.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + sound.duration);
+      
+      setTimeout(() => {
+        oscillator.stop();
+      }, sound.duration * 1000);
+    }
+  } catch (e) {
+    console.log("Audio error:", e);
+  }
+}
+
+// Create visual hit effect
+function createHitEffect(x, y, size) {
+  const effect = document.createElement('div');
+  effect.className = 'hit-effect';
+  effect.style.left = `${x - size/2}px`;
+  effect.style.top = `${y - size/2}px`;
+  effect.style.width = `${size}px`;
+  effect.style.height = `${size}px`;
+ 
+  gameArea.appendChild(effect);
+  
+  setTimeout(() => {
+    if (effect.parentNode === gameArea) {
+      gameArea.removeChild(effect);
+    }
+  }, 600);
+}
+
+const roundTime = 60;
+let timeLeft = roundTime;
+let score = 0;
+let missClicks = 0;
+let bestScore = 0;
+let intervalId = null;
+let roundStarted = false;
+let currentSizeIndex = isMobile ? 2 : 3;
+
+let mode = 'single';
+let targets = [];
+let lastPositions = [];
+
+// Metrics variables
+let combo = 0;
+let lastHitTime = 0;
+let totalReactionTime = 0;
+let accuracy = 0;
+let avgReactionTime = 0;
+let totalShots = 0;
+
+const settings = {
+  single: { count: 1, radius: isMobile ? 300 : 400 },
+  multi: { count: 3, radius: isMobile ? 200 : 300 },
+  '3red': { count: 2, radius: 'full' }
+};
+
+if (localStorage.getItem('bestAimScore')) {
+  bestScore = parseInt(localStorage.getItem('bestAimScore'));
+  bestScoreDisplay.textContent = bestScore;
+}
+
+function updateDisplays() {
+  scoreDisplay.textContent = score;
+  missclicksDisplay.textContent = missClicks;
+  timeDisplay.textContent = timeLeft;
+  modeDisplay.textContent = 
+    mode === 'single' ? 'Single' : 
+    mode === 'multi' ? 'Multi' : 
+    'Sniper';
+  
+  // Calculate and update accuracy
+  accuracy = totalShots > 0 ? Math.round((score / totalShots) * 100) : 0;
+  document.getElementById('accuracy').textContent = accuracy + '%';
+  
+  // Update combo
+  document.getElementById('combo').textContent = combo;
+  
+  // Update average reaction time
+  avgReactionTime = score > 0 ? (totalReactionTime / score) : 0;
+  document.getElementById('avg-time').textContent = avgReactionTime.toFixed(2) + 's';
+  
+  // Add pulse animation to score when it changes
+  scoreDisplay.parentElement.classList.remove('pulse');
+  void scoreDisplay.parentElement.offsetWidth;
+  scoreDisplay.parentElement.classList.add('pulse');
+  
+  // Flash time when below 10 seconds
+  if (timeLeft < 11) {
+    timeItem.style.animation = 'pulse 0.8s infinite';
+    timeItem.style.background = 'rgba(255, 50, 50, 0.3)';
+  } else {
+    timeItem.style.animation = '';
+    timeItem.style.background = '';
+  }
+}
+//heavy calc in worker (setup)
+// Web Worker Setup
+
+positionWorker.onmessage = (e) => {
+  const callback = workerCallbacks.get(e.data.id);
+  if (callback) {
+    e.data.error ? callback.reject(e.data.error) : callback.resolve(e.data.result);
+    workerCallbacks.delete(e.data.id);
+  }
+};
+
+positionWorker.onerror = (e) => {
+  console.error('Worker error:', e);
+  Array.from(workerCallbacks.values()).forEach(cb => cb.reject(new Error('Worker failed')));
+  workerCallbacks.clear();
+};
+
+async function getRandomPosition(size) {
+  return new Promise((resolve, reject) => {
+    const id = requestId++;
+    workerCallbacks.set(id, { resolve, reject });
+    positionWorker.postMessage({
+      id,
+      type: 'random',
+      data: { 
+        size,
+        width: gameArea.offsetWidth,
+        height: gameArea.offsetHeight
+      }
+    });
+  });
+}
+
+async function getNonOverlappingPosition(size, existing, radius) {
+  return new Promise((resolve, reject) => {
+    const id = requestId++;
+    workerCallbacks.set(id, { resolve, reject });
+    positionWorker.postMessage({
+      id,
+      type: 'non-overlapping',
+      data: { 
+        size, 
+        existing, 
+        radius,
+        width: gameArea.offsetWidth,
+        height: gameArea.offsetHeight
+      }
+    });
+  });
+}
+
+
+async function moveTargetToNewPosition(targetIndex) {
+  const size = sizes[currentSizeIndex];
+  const radius = settings[mode].radius;
+  const existing = lastPositions.filter((_, i) => i !== targetIndex);
+  
+  try {
+    const pos = await getNonOverlappingPosition(size, existing, radius);
+    lastPositions[targetIndex] = pos;
+    targets[targetIndex].style.left = pos.left + 'px';
+    targets[targetIndex].style.top = pos.top + 'px';
+  } catch (err) {
+    console.error('Position error:', err);
+    const pos = await getRandomPosition(size);
+    lastPositions[targetIndex] = pos;
+    targets[targetIndex].style.left = pos.left + 'px';
+    targets[targetIndex].style.top = pos.top + 'px';
+  }
+}
+
+async function teleportAllTargets() {
+  const size = sizes[currentSizeIndex];
+  const radius = settings[mode].radius;
+  lastPositions = [];
+
+  for (let i = 0; i < targets.length; i++) {
+    try {
+      const pos = await getNonOverlappingPosition(size, lastPositions, radius);
+      lastPositions.push(pos);
+      targets[i].style.left = pos.left + 'px';
+      targets[i].style.top = pos.top + 'px';
+    } catch (err) {
+      console.error('Position error:', err);
+      const pos = await getRandomPosition(size);
+      lastPositions.push(pos);
+      targets[i].style.left = pos.left + 'px';
+      targets[i].style.top = pos.top + 'px';
+    }
+  }
+}
+
+async function createTargets() {
+  // First remove existing targets
+  targets.forEach(t => {
+    if (t.parentNode === gameArea) {
+      gameArea.removeChild(t);
+    }
+  });
+  targets = [];
+
+  const count = settings[mode].count;
+  const size = sizes[currentSizeIndex];
+
+  // Create new targets
+  for (let i = 0; i < count; i++) {
+    const btn = document.createElement('button');
+    btn.className = useImageTarget ? 'target image-mode' : 'target red-mode';
+    btn.style.width = size + 'px';
+    btn.style.height = size + 'px';
+
+    if (isMobile) {
+      btn.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        handleTargetClick(e, btn, size, i);
+      });
+    }
+
+    btn.addEventListener('click', (e) => {
+      handleTargetClick(e, btn, size, i);
+    });
+    
+    gameArea.appendChild(btn);
+    targets.push(btn);
+  }
+
+  await teleportAllTargets();
+  updateTargetAppearance();
+}
+
+function handleTargetClick(e, btn, size, index) {
+  e.stopPropagation();
+  
+  // Play sound effect
+  playHitSound();
+  
+  // Create visual effect
+  const rect = btn.getBoundingClientRect();
+  const areaRect = gameArea.getBoundingClientRect();
+  createHitEffect(
+    rect.left - areaRect.left + size/2, 
+    rect.top - areaRect.top + size/2,
+    size
+  );
+  
+  // Update combo and reaction time
+  combo++;
+  const now = Date.now();
+  if (lastHitTime > 0) {
+    const reactionTime = (now - lastHitTime) / 1000;
+    totalReactionTime += reactionTime;
+  }
+  lastHitTime = now;
+  
+  if (!roundStarted) {
+    startRound();
+  } else {
+    score++;
+    totalShots++;
+    updateDisplays();
+
+    if (mode === 'multi' || mode === '3red') {
+      moveTargetToNewPosition(index);
+    } else {
+      teleportAllTargets();
+    }
+  }
+}
+
+function startRound() {
+   document.addEventListener('touchmove', scrollPreventer, { passive: false });
+  document.body.style.overflow = 'hidden'; 
+  document.documentElement.style.overflow =='hidden';
+
+  document.body.style.position = 'fixed';
+  document.body.style.width = '100%';
+
+  if (roundStarted) return;
+  roundStarted = true;
+
+  timeLeft = roundTime;
+  score = 0;
+  missClicks = 0;
+  totalShots = 0;
+  
+  // Reset metrics
+  combo = 0;
+  lastHitTime = 0;
+  totalReactionTime = 0;
+  accuracy = 0;
+  avgReactionTime = 0;
+  
+  updateDisplays();
+
+  intervalId = setInterval(() => {
+    timeLeft--;
+    updateDisplays();
+
+    if (timeLeft <= 0) {
+      endRound();
+    }
+  }, 1000);
+}
+
+function endRound() {
+  document.removeEventListener('touchmove', scrollPreventer, { passive: false });
+
+ document.body.style.overflow = 'auto'; 
+ document.documentElement.style.overflow =='auto';
+
+  document.body.style.position = 'static';
+  
+  clearInterval(intervalId);
+  intervalId = null;
+  roundStarted = false;
+
+  let finalScore = score - missClicks;
+  if (finalScore < 0) finalScore = 0;
+
+  alert(`Round over! 
+Score: ${score} 
+Missclicks: ${missClicks}
+Final score: ${finalScore}
+Accuracy: ${accuracy}% 
+Avg. Time: ${avgReactionTime.toFixed(2)}s`);
+
+  if (finalScore > bestScore) {
+    bestScore = finalScore;
+    bestScoreDisplay.textContent = bestScore;
+    localStorage.setItem('bestAimScore', bestScore);
+    alert('New Best Score!');
+  }
+}
+
+gameArea.addEventListener('click', () => {
+  if (roundStarted) {
+    missClicks++;
+    totalShots++;
+    combo = 0;
+    updateDisplays();
+  }
+});
+
+// NEU: Mausposition verfolgen
+gameArea.addEventListener('mousemove', (e) => {
+  const rect = gameArea.getBoundingClientRect();
+  mouseX = e.clientX - rect.left;
+  mouseY = e.clientY - rect.top;
+});
+
+// NEU: Funktion zum Simulieren eines Klicks
+function simulateMouseClick() {
+  const element = document.elementFromPoint(mouseX + gameArea.getBoundingClientRect().left, 
+                                          mouseY + gameArea.getBoundingClientRect().top);
+  
+  if (element && element.classList.contains('target')) {
+    const index = targets.indexOf(element);
+    if (index !== -1) {
+      const size = parseInt(element.style.width);
+      const simulatedEvent = {
+        stopPropagation: () => {},
+        type: 'click'
+      };
+      handleTargetClick(simulatedEvent, element, size, index);
+    }
+  } else if (roundStarted) {
+    missClicks++;
+    totalShots++;
+    combo = 0;
+    updateDisplays();
+  }
+}
+
+// NEU: Tastatur-Event-Listener
+document.addEventListener('keydown', (e) => {
+  const allowedKeys = new Set(['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z', 'ü', 'ö', 'ä', 'ß']);
+  
+  if (allowedKeys.has(e.key.toLowerCase())) {
+    simulateMouseClick();
+  }
+});
+
+
+
+
+
+
+
+
+
+if (isMobile) {
+  gameArea.addEventListener('touchstart', (e) => {
+    if (roundStarted && e.target === gameArea) {
+      missClicks++;
+      totalShots++;
+      combo = 0;
+      updateDisplays();
+    }
+  });
+}
+
+sizeBtn.addEventListener('click', () => {
+  currentSizeIndex = (currentSizeIndex + 1) % sizes.length;
+  targets.forEach(target => {
+    target.style.width = sizes[currentSizeIndex] + 'px';
+    target.style.height = sizes[currentSizeIndex] + 'px';
+  });
+  teleportAllTargets();
+  updateTargetAppearance(); // Add this line
+
+});
+
+modeBtn.addEventListener('click', () => {
+  if (mode === 'single') {
+    mode = 'multi';
+  } else if (mode === 'multi') {
+    mode = '3red';
+  } else {
+    mode = 'single';
+  }
+  createTargets();
+  updateDisplays();
+  updateTargetAppearance(); // Add this line
+});
+
+stopBtn.addEventListener('click', () => {
+  if (roundStarted) {
+    endRound();
+  }
+});
+
+// Sound selector functionality
+soundOptions.forEach(option => {
+  option.addEventListener('click', () => {
+    currentSound = option.dataset.sound;
+    localStorage.setItem('aimTrainerSound', currentSound);
+    updateSoundButtons();
+    playHitSound();
+  });
+});
+
+// Reset sound to default
+resetSoundBtn.addEventListener('click', () => {
+  currentSound = 'classic';
+  customSound = null;
+  soundUpload.value = '';
+  localStorage.setItem('aimTrainerSound', currentSound);
+  updateSoundButtons();
+  playHitSound();
+});
+
+// Toggle target between image and red
+let useImageTarget = false;
+if (localStorage.getItem('useImageTarget') === 'true') {
+    useImageTarget = true;
+}
+
+function updateTargetAppearance() {
+    targets.forEach(target => {
+        if (useImageTarget) {
+            target.classList.add('image-mode');
+            target.classList.remove('red-mode');
+        } else {
+            target.classList.add('red-mode');
+            target.classList.remove('image-mode');
+        }
+    });
+       
+    toggleTargetBtn.textContent = useImageTarget ? "Switch to Red" : "Switch to Image";
+}
+
+toggleTargetBtn.addEventListener('click', function() {
+    useImageTarget = !useImageTarget;
+    localStorage.setItem('useImageTarget', useImageTarget);
+    updateTargetAppearance();
+});
+
+
+
+// Initialize
+
+window.addEventListener('resize', () => {
+  teleportAllTargets();
+});
+
+window.addEventListener('orientationchange', () => {
+  setTimeout(teleportAllTargets, 100);
+});
+
+// Initialize game
+async function initGame() {
+  await createTargets();
+  updateDisplays();
+  updateSoundStatus();
+  updateSoundButtons();
+  createAudioContext();
+}
+
+initGame();
