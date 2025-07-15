@@ -246,14 +246,14 @@ let missClicks = 0;
 let bestScores = JSON.parse(localStorage.getItem('aimTrainerBestScores'));
 if (bestScores === null){
      bestScores={
-    single: 42,
-    multi: 87,
-    sniper: 15
+    single: 0,
+    multi: 0,
+    sniper: 0
      }
 };
 
 
-// Lösche die alte Zeile: let bestScores = { ... };
+
 
 let intervalId = null;
 let roundStarted = false;
@@ -279,6 +279,7 @@ const settings = {
 
 
 
+// Ersetze die bestehende updateDisplays-Funktion (Zeile ~190)
 function updateDisplays() {
   scoreDisplay.textContent = score;
   missclicksDisplay.textContent = missClicks;
@@ -288,8 +289,16 @@ function updateDisplays() {
     mode === 'multi' ? 'Multi' : 
     'Sniper';
   
-     bestScoreDisplay.innerHTML = `<span id="best-score-value">High score: 
-      ${bestScores[mode]}</span>`;
+  bestScoreDisplay.innerHTML = `<span id="best-score-value">High score: ${bestScores[mode]}</span>`;
+  
+  // NEUE BERECHNUNGEN HINZUGEFÜGT
+  accuracy = totalShots > 0 ? Math.round((score / totalShots) * 100) : 0;
+  document.getElementById('accuracy').textContent = accuracy + '%';
+  
+  document.getElementById('combo').textContent = combo;
+  
+  avgReactionTime = score > 0 ? (totalReactionTime / score) : 0;
+  document.getElementById('avg-time').textContent = avgReactionTime.toFixed(2) + 's';
 }
 
 
@@ -450,13 +459,11 @@ async function createTargets() {
   updateTargetAppearance();
 }
 
+
 function handleTargetClick(e, btn, size, index) {
   e.stopPropagation();
-  
-  // Play sound effect
   playHitSound();
   
-  // Create visual effect
   const rect = btn.getBoundingClientRect();
   const areaRect = gameArea.getBoundingClientRect();
   createHitEffect(
@@ -465,7 +472,7 @@ function handleTargetClick(e, btn, size, index) {
     size
   );
   
-  // Update combo and reaction time
+  // FÜGE DIESEN CODEBLOCK HINZU:
   combo++;
   const now = Date.now();
   if (lastHitTime > 0) {
@@ -473,12 +480,13 @@ function handleTargetClick(e, btn, size, index) {
     totalReactionTime += reactionTime;
   }
   lastHitTime = now;
-  
+  // ENDE DES NEUEN CODES
+
   if (!roundStarted) {
     startRound();
   } else {
     score++;
-    totalShots++;
+    totalShots++; // DIESE ZEILE HINZUGEFÜGT
     updateDisplays();
 
     if (mode === 'multi' || mode === 'sniper') {
