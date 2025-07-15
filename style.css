@@ -621,7 +621,7 @@
 
   }
   h1{
-    font-size: 1.8rem;
+    font-size: 1.1rem;
   }
   #controls {
      zoom : 76%;
@@ -640,6 +640,9 @@
   }
       #NAME{
   font-size: 0.7rem;
+  margin-top:1px;
+  margin-bottom:1px;
+
 
       }
       h1 {
