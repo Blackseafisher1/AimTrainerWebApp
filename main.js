@@ -241,7 +241,20 @@ const roundTime = 60;
 let timeLeft = roundTime;
 let score = 0;
 let missClicks = 0;
-let bestScore = 0;
+
+// Ändere die Initialisierung von bestScores
+let bestScores = JSON.parse(localStorage.getItem('aimTrainerBestScores'));
+if (bestScores === null){
+     bestScores={
+    single: 42,
+    multi: 87,
+    sniper: 15
+     }
+};
+
+
+// Lösche die alte Zeile: let bestScores = { ... };
+
 let intervalId = null;
 let roundStarted = false;
 let currentSizeIndex = isMobile ? 2 : 3;
@@ -261,13 +274,10 @@ let totalShots = 0;
 const settings = {
   single: { count: 1, radius: isMobile ? 300 : 400 },
   multi: { count: 3, radius: isMobile ? 200 : 300 },
-  '3red': { count: 2, radius: 'full' }
+  sniper: { count: 2, radius: 'full' }
 };
 
-if (localStorage.getItem('bestAimScore')) {
-  bestScore = parseInt(localStorage.getItem('bestAimScore'));
-  bestScoreDisplay.textContent = bestScore;
-}
+
 
 function updateDisplays() {
   scoreDisplay.textContent = score;
@@ -277,6 +287,13 @@ function updateDisplays() {
     mode === 'single' ? 'Single' : 
     mode === 'multi' ? 'Multi' : 
     'Sniper';
+  
+     bestScoreDisplay.innerHTML = `<span id="best-score-value">High score: 
+      ${bestScores[mode]}</span>`;
+}
+
+
+
   
   // Calculate and update accuracy
   accuracy = totalShots > 0 ? Math.round((score / totalShots) * 100) : 0;
@@ -302,7 +319,7 @@ function updateDisplays() {
     timeItem.style.animation = '';
     timeItem.style.background = '';
   }
-}
+
 //heavy calc in worker (setup)
 // Web Worker Setup
 
@@ -464,7 +481,7 @@ function handleTargetClick(e, btn, size, index) {
     totalShots++;
     updateDisplays();
 
-    if (mode === 'multi' || mode === '3red') {
+    if (mode === 'multi' || mode === 'sniper') {
       moveTargetToNewPosition(index);
     } else {
       teleportAllTargets();
@@ -507,12 +524,11 @@ function startRound() {
   }, 1000);
 }
 
+
 function endRound() {
   document.removeEventListener('touchmove', scrollPreventer, { passive: false });
-
- document.body.style.overflow = 'auto'; 
- document.documentElement.style.overflow =='auto';
-
+  document.body.style.overflow = 'auto';
+  document.documentElement.style.overflow = 'auto'; // Fix: == zu = geändert
   document.body.style.position = 'static';
   
   clearInterval(intervalId);
@@ -522,19 +538,23 @@ function endRound() {
   let finalScore = score - missClicks;
   if (finalScore < 0) finalScore = 0;
 
-  alert(`Round over! 
+  // Alert nur anzeigen wenn nicht 0 Punkte
+  if (score > 0 || missClicks > 0) {
+    alert(`Round over! 
 Score: ${score} 
 Missclicks: ${missClicks}
 Final score: ${finalScore}
 Accuracy: ${accuracy}% 
 Avg. Time: ${avgReactionTime.toFixed(2)}s`);
-
-  if (finalScore > bestScore) {
-    bestScore = finalScore;
-    bestScoreDisplay.textContent = bestScore;
-    localStorage.setItem('bestAimScore', bestScore);
-    alert('New Best Score!');
   }
+
+  if (finalScore > bestScores[mode]) {
+      bestScores[mode] = finalScore;
+      localStorage.setItem('aimTrainerBestScores', JSON.stringify(bestScores));
+       if (finalScore > 0) alert('New Best Score! in ' + mode + " | " + bestScores[mode]);
+  }
+  
+  updateDisplays();
 }
 
 gameArea.addEventListener('click', () => {
@@ -616,16 +636,21 @@ sizeBtn.addEventListener('click', () => {
 });
 
 modeBtn.addEventListener('click', () => {
+  if (roundStarted) {
+    endRound();
+ } 
   if (mode === 'single') {
     mode = 'multi';
   } else if (mode === 'multi') {
-    mode = '3red';
+    mode = 'sniper';
   } else {
     mode = 'single';
   }
+
   createTargets();
   updateDisplays();
   updateTargetAppearance(); // Add this line
+
 });
 
 stopBtn.addEventListener('click', () => {
@@ -642,6 +667,7 @@ soundOptions.forEach(option => {
     updateSoundButtons();
     playHitSound();
   });
+  updateDisplays();
 });
 
 // Reset sound to default
