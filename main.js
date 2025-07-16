@@ -19,42 +19,63 @@ const toggleTargetBtn = document.getElementById('toggle-target');
 
 const scrollPreventer = e => e.preventDefault();
 
-
+const canVibrate = "vibrate" in navigator;
 // Vibration Controller (angepasst an Ihren bestehenden Code)
 const vibration = {
   canVibrate: "vibrate" in navigator,
   isIOS: /iPhone|iPad|iPod/i.test(navigator.userAgent),
-  audioContext: null, // Wird mit Ihrem bestehenden AudioContext geteilt
+  audioContext: null,
 
   async vibrate() {
-    // 1. Standard-Vibration für Android
-    if (this.canVibrate && !this.isIOS) {
-      navigator.vibrate([30, 10, 30]);
-      return;
+    try {
+      // Try standard vibration first
+      if (this._tryStandard()) return;
+      
+      // Then try iOS haptic feedback
+      if (await this._tryIOSHaptic()) return;
+      
+      // Finally, use nuclear fallback if nothing else worked
+      this._nuclearFallback();
+    } catch (e) {
+      console.error("Vibration failed completely:", e);
     }
+  },
 
-    // 2. iOS-Haptic Feedback mit bestehendem AudioContext
-    if (this.isIOS && audioContext) { // Nutzt Ihren vorhandenen audioContext
-      try {
-        await resumeAudioContext(); // Nutzt Ihre vorhandene Funktion
-        
-        // Kurzer Impuls mit sehr hoher Frequenz (für Haptic Feedback)
-        const osc = audioContext.createOscillator();
-        const gain = audioContext.createGain();
-        
-        osc.type = 'square';
-        osc.frequency.value = 200; // Hohe Frequenz für besseres Feedback
-        gain.gain.value = 0.0001; // Fast unhörbar
-        
-        osc.connect(gain);
-        gain.connect(audioContext.destination);
-        
-        osc.start();
-        osc.stop(audioContext.currentTime + 0.015); // Sehr kurzer Impuls
-        
-      } catch (e) {
-        console.log("iOS Haptic Feedback failed:", e);
-      }
+  _tryStandard() {
+    if (!this.canVibrate) return false;
+    try {
+      return navigator.vibrate(this.isIOS ? [10] : [30, 10, 30]);
+    } catch (e) {
+      return false;
+    }
+  },
+
+  async _tryIOSHaptic() {
+    if (!this.isIOS || !audioContext) return false;
+    
+    try {
+      await resumeAudioContext(); // Using your existing function
+      const osc = audioContext.createOscillator();
+      osc.connect(audioContext.destination);
+      osc.start();
+      osc.stop(audioContext.currentTime + 0.015);
+      return true;
+    } catch (e) {
+      return false;
+    }
+  },
+
+  _nuclearFallback() {
+    if (!this.isIOS) return;
+    
+    try {
+      // Extremely short silent audio clip as last resort
+      const audio = new Audio();
+      audio.src = 'data:audio/wav;base64,UklGRl9vT19XQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQ...';
+      audio.volume = 0.0001;
+      audio.play().catch(() => {});
+    } catch (e) {
+      console.error("Nuclear fallback failed:", e);
     }
   }
 };
@@ -520,7 +541,7 @@ function handleTargetClick(e, btn, size, index) {
   playHitSound();
   
   // Add vibration for mobile devices
-  vibration.vibrate();
+  vibration.vibrate().catch(() => {});
   // Rest of your existing code...
   const rect = btn.getBoundingClientRect();
   const areaRect = gameArea.getBoundingClientRect();
