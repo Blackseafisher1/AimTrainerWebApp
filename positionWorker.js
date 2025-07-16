@@ -17,11 +17,13 @@ function isOverlapping(pos1, pos2, minDistance) {
 
 // Generiert zufällige Position mit Randabstand
 function getRandomPosition(size, width, height) {
+    let margin = size*2;
     return {
-      left: margin + fastRandom() * (width - size),
-      top: margin + fastRandom() * (height - size)
+      left: margin + fastRandom() * (width - size - 2 * margin),
+      top: margin + fastRandom() * (height - size - 2 * margin)
     };
   }
+
 
   
 
