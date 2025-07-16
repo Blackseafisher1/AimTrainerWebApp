@@ -464,14 +464,6 @@ async function createTargets() {
 }
 
 
-function iosVibrateFallback() {
-  // Creates a silent audio pulse that sometimes triggers haptic feedback
-  const audioContext = new (window.AudioContext || window.AudioContext)();
-  const oscillator = audioContext.createOscillator();
-  oscillator.connect(audioContext.destination);
-  oscillator.start();
-  setTimeout(() => oscillator.stop(), 10);
-}
 
 
 
@@ -480,20 +472,30 @@ function iosVibrateFallback() {
 
 function vibrate() {
   try {
-    // iOS needs special handling
-    if (isIOS) {
-      // iOS typically ignores duration, so we use minimal vibration
-      iosVibrateFallback();
-    } 
-    // Android and other devices
-    else {
-      navigator.vibrate([20, 10, 20]); // vibration pattern
+    // 1. Versuch: Standard-Vibration
+    if (canVibrate) {
+      navigator.vibrate(isIOS ? 10 : [30, 10, 30]);
+      return;
+    }
+    
+    // 2. Versuch: iOS-Audio-Hack
+    if (isIOS && (window.AudioContext || window.webkitAudioContext)) {
+      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+      const osc = ctx.createOscillator();
+      osc.connect(ctx.destination);
+      osc.start();
+      osc.stop(ctx.currentTime + 0.02);
+      return;
+    }
+    
+    // 3. Versuch: Legacy-WebKit (selten benötigt)
+    if (window.webkit?.messageHandlers?.vibrate) {
+      window.webkit.messageHandlers.vibrate.postMessage(10);
     }
   } catch (e) {
-    console.log("Vibration failed:", e);
+    console.error("Vibration fehlgeschlagen:", e);
   }
 }
-
 
 
 
