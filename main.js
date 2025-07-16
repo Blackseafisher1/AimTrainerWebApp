@@ -727,7 +727,7 @@ window.addEventListener('resize', () => {
 });
 
 window.addEventListener('orientationchange', () => {
-  setTimeout(teleportAllTargets, 100);
+  setTimeout(teleportAllTargets(), 100);
 });
 
 // Initialize game

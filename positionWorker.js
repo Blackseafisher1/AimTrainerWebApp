@@ -29,6 +29,7 @@ function getRandomPosition(size, width, height) {
 
 
 // Findet nicht-überlappende Position mit optimierter Logik
+// positionWorker.js
 function getNonOverlappingPosition(size, existing, radius, width, height) {
   const minDist = size * 1.1; // 10% Abstand
   const minDistSq = minDist * minDist;
@@ -36,37 +37,51 @@ function getNonOverlappingPosition(size, existing, radius, width, height) {
   const centerY = height / 2;
   const maxLeft = width - size;
   const maxTop = height - size;
-  const useRadial = radius !== 'full';
-
-  // 1. Versuche radiale Platzierung (wenn aktiviert)
-  if (useRadial) {
+  
+  // Verbesserte Logik für 'full' radius (Sniper-Modus)
+  if (radius === 'full') {
+    // Versuche 1: Versuche Positionen mit reduziertem Rand
     for (let tries = 0; tries < 150; tries++) {
-      const angle = fastRandom() * Math.PI * 2;
-      const distance = fastRandom() * radius;
+      const candidate = {
+        left: size/2 + fastRandom() * (width - size*2),
+        top: size/2 + fastRandom() * (height - size*2)
+      };
       
-      const left = Math.max(0, Math.min(
-        centerX + Math.cos(angle) * distance - size / 2, 
-        maxLeft
-      ));
-      
-      const top = Math.max(0, Math.min(
-        centerY + Math.sin(angle) * distance - size / 2,
-        maxTop
-      ));
-      
-      const candidate = { left, top };
-      
-      if (!existing.some(pos => 
-        (pos.left - candidate.left) ** 2 + (pos.top - candidate.top) ** 2 < minDistSq
-      )) {
-        return candidate;
+      // Prüfe auf Kollisionen
+      let valid = true;
+      for (const pos of existing) {
+        if ((pos.left - candidate.left) ** 2 + (pos.top - candidate.top) ** 2 < minDistSq) {
+          valid = false;
+          break;
+        }
       }
+      
+      if (valid) return candidate;
     }
+    
+    // Versuche 2: Notfall mit minimalem Rand
+    return {
+      left: 5 + fastRandom() * (width - size*2),
+      top: 5 + fastRandom() * (height - size *2)
+    };
   }
   
-  // 2. Fallback: Einfache Zufallsplatzierung mit Kollisionsprüfung
-  for (let tries = 0; tries < 50; tries++) {
-    const candidate = getRandomPosition(size, width, height);
+  // Originale Logik für radiale Platzierung (Single/Multi-Modus)
+  for (let tries = 0; tries < 150; tries++) {
+    const angle = fastRandom() * Math.PI * 2;
+    const distance = fastRandom() * radius;
+    
+    const left = Math.max(0, Math.min(
+      centerX + Math.cos(angle) * distance - size / 2, 
+      maxLeft
+    ));
+    
+    const top = Math.max(0, Math.min(
+      centerY + Math.sin(angle) * distance - size / 2,
+      maxTop
+    ));
+    
+    const candidate = { left, top };
     
     if (!existing.some(pos => 
       (pos.left - candidate.left) ** 2 + (pos.top - candidate.top) ** 2 < minDistSq
@@ -75,8 +90,11 @@ function getNonOverlappingPosition(size, existing, radius, width, height) {
     }
   }
   
-  // 3. Notfall: Letzter Versuch (ignoriert Kollisionen)
-  return getRandomPosition(size, width, height);
+  // Fallback für Single/Multi-Modus
+  return {
+    left: size + fastRandom() * (width - size * 3),
+    top: size + fastRandom() * (height - size * 3)
+  };
 }
 
 // Worker-Handler
