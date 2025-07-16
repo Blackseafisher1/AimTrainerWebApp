@@ -480,8 +480,7 @@ function handleTargetClick(e, btn, size, index) {
   e.stopPropagation();
   playHitSound();
   
-  // Add vibration for mobile devices
-  vibration.vibrate().catch(() => {});
+
   // Rest of your existing code...
   const rect = btn.getBoundingClientRect();
   const areaRect = gameArea.getBoundingClientRect();
