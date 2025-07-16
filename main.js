@@ -19,7 +19,9 @@ const toggleTargetBtn = document.getElementById('toggle-target');
 
 const scrollPreventer = e => e.preventDefault();
 
-const canVibrate = 'vibrate' in navigator;
+
+const canVibrate = "vibrate" in navigator;
+const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
 
 //worker varribles (position calc)
 const positionWorker = new Worker('positionWorker.js');
@@ -463,15 +465,26 @@ async function createTargets() {
 
 
 function vibrate() {
-// Different patterns for different devices
-    if (/iPhone|iPad|iPod/i.test(navigator.userAgent)) {
-        // iOS - simple short vibration
-        navigator.vibrate(10);
-    } else {
-        // Android - can use more complex patterns
-        navigator.vibrate([20, 10, 20]);
+  try {
+    // iOS needs special handling
+    if (isIOS) {
+      // iOS typically ignores duration, so we use minimal vibration
+      navigator.vibrate(10); // or [10] for array format
+      
+      // Alternative iOS approach if the above doesn't work
+      if (!navigator.vibrate(10)) {
+        navigator.vibrate([10]); // try array format
+      }
+    } 
+    // Android and other devices
+    else {
+      navigator.vibrate([20, 10, 20]); // vibration pattern
     }
+  } catch (e) {
+    console.log("Vibration failed:", e);
+  }
 }
+
 
 
 
@@ -482,7 +495,7 @@ function handleTargetClick(e, btn, size, index) {
   playHitSound();
   
   // Add vibration for mobile devices
-  if (canVibrate && isMobile) {
+  if (canVibrate) {
     vibrate();
   }
   
