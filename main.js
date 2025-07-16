@@ -19,60 +19,6 @@ const toggleTargetBtn = document.getElementById('toggle-target');
 
 const scrollPreventer = e => e.preventDefault();
 
-const canVibrate = "vibrate" in navigator;
-// Vibration Controller (angepasst an Ihren bestehenden Code)
-const vibration = {
-  canVibrate: "vibrate" in navigator,
-  isIOS: /iPhone|iPad|iPod/i.test(navigator.userAgent),
-
-  async vibrate() {
-    // 1. Standard-Vibration für Android
-    if (!this.isIOS && this.canVibrate) {
-      navigator.vibrate([20, 10, 20]);
-      return;
-    }
-
-    // 2. Ultra-leiser iOS-Hack
-    if (this.isIOS) {
-      await this._silentIOSHaptic();
-    }
-  },
-
-  async _silentIOSHaptic() {
-    try {
-      // Nutze Ihren existierenden AudioContext
-      if (!audioContext) return;
-      
-      await resumeAudioContext(); // Ihre existierende Funktion
-      
-      const osc = audioContext.createOscillator();
-      const gain = audioContext.createGain();
-      
-      // Wichtig: Ultrasonic Frequenz (für Menschen unhörbar)
-      osc.type = 'sine';
-      osc.frequency.value = 22000; // 22kHz (über menschlichem Hörbereich)
-      
-      // Extrem leise
-      gain.gain.value = 0.000001; // 1 Millionstel der Lautstärke
-      
-      // Spezielles Routing für Haptics
-      const compressor = audioContext.createDynamicsCompressor();
-      compressor.threshold.value = -100;
-      compressor.knee.value = 40;
-      
-      osc.connect(gain);
-      gain.connect(compressor);
-      compressor.connect(audioContext.destination);
-      
-      // Blitzschneller Impuls
-      osc.start();
-      osc.stop(audioContext.currentTime + 0.005); // Nur 5ms!
-      
-    } catch (e) {
-      console.log("Silent haptic failed:", e);
-    }
-  }
-};
 
 
 
@@ -809,11 +755,6 @@ async function initGame() {
   updateSoundStatus();
   updateSoundButtons();
   createAudioContext();
-  
-  // Log vibration support
-  if (!canVibrate) {
-    console.log('Vibration API not supported');
-  }
 }
 
 initGame();
