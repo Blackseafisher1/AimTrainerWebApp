@@ -24,58 +24,52 @@ const canVibrate = "vibrate" in navigator;
 const vibration = {
   canVibrate: "vibrate" in navigator,
   isIOS: /iPhone|iPad|iPod/i.test(navigator.userAgent),
-  audioContext: null,
 
   async vibrate() {
-    try {
-      // Try standard vibration first
-      if (this._tryStandard()) return;
-      
-      // Then try iOS haptic feedback
-      if (await this._tryIOSHaptic()) return;
-      
-      // Finally, use nuclear fallback if nothing else worked
-      this._nuclearFallback();
-    } catch (e) {
-      console.error("Vibration failed completely:", e);
+    // 1. Standard-Vibration für Android
+    if (!this.isIOS && this.canVibrate) {
+      navigator.vibrate([20, 10, 20]);
+      return;
+    }
+
+    // 2. Ultra-leiser iOS-Hack
+    if (this.isIOS) {
+      await this._silentIOSHaptic();
     }
   },
 
-  _tryStandard() {
-    if (!this.canVibrate) return false;
+  async _silentIOSHaptic() {
     try {
-      return navigator.vibrate(this.isIOS ? [10] : [30, 10, 30]);
-    } catch (e) {
-      return false;
-    }
-  },
-
-  async _tryIOSHaptic() {
-    if (!this.isIOS || !audioContext) return false;
-    
-    try {
-      await resumeAudioContext(); // Using your existing function
+      // Nutze Ihren existierenden AudioContext
+      if (!audioContext) return;
+      
+      await resumeAudioContext(); // Ihre existierende Funktion
+      
       const osc = audioContext.createOscillator();
-      osc.connect(audioContext.destination);
+      const gain = audioContext.createGain();
+      
+      // Wichtig: Ultrasonic Frequenz (für Menschen unhörbar)
+      osc.type = 'sine';
+      osc.frequency.value = 22000; // 22kHz (über menschlichem Hörbereich)
+      
+      // Extrem leise
+      gain.gain.value = 0.000001; // 1 Millionstel der Lautstärke
+      
+      // Spezielles Routing für Haptics
+      const compressor = audioContext.createDynamicsCompressor();
+      compressor.threshold.value = -100;
+      compressor.knee.value = 40;
+      
+      osc.connect(gain);
+      gain.connect(compressor);
+      compressor.connect(audioContext.destination);
+      
+      // Blitzschneller Impuls
       osc.start();
-      osc.stop(audioContext.currentTime + 0.015);
-      return true;
+      osc.stop(audioContext.currentTime + 0.005); // Nur 5ms!
+      
     } catch (e) {
-      return false;
-    }
-  },
-
-  _nuclearFallback() {
-    if (!this.isIOS) return;
-    
-    try {
-      // Extremely short silent audio clip as last resort
-      const audio = new Audio();
-      audio.src = 'data:audio/wav;base64,UklGRl9vT19XQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQ...';
-      audio.volume = 0.0001;
-      audio.play().catch(() => {});
-    } catch (e) {
-      console.error("Nuclear fallback failed:", e);
+      console.log("Silent haptic failed:", e);
     }
   }
 };
