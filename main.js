@@ -464,17 +464,26 @@ async function createTargets() {
 }
 
 
+function iosVibrateFallback() {
+  // Creates a silent audio pulse that sometimes triggers haptic feedback
+  const audioContext = new (window.AudioContext || window.AudioContext)();
+  const oscillator = audioContext.createOscillator();
+  oscillator.connect(audioContext.destination);
+  oscillator.start();
+  setTimeout(() => oscillator.stop(), 10);
+}
+
+
+
+
+
+
 function vibrate() {
   try {
     // iOS needs special handling
     if (isIOS) {
       // iOS typically ignores duration, so we use minimal vibration
-      navigator.vibrate(10); // or [10] for array format
-      
-      // Alternative iOS approach if the above doesn't work
-      if (!navigator.vibrate(10)) {
-        navigator.vibrate([10]); // try array format
-      }
+      iosVibrateFallback();
     } 
     // Android and other devices
     else {
