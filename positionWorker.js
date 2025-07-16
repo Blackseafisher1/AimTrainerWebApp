@@ -15,14 +15,19 @@ function isOverlapping(pos1, pos2, minDistance) {
   return (dx * dx + dy * dy) < (minDistance * minDistance);
 }
 
-// Generiert zufällige Position
+// Generiert zufällige Position mit Randabstand
 function getRandomPosition(size, width, height) {
+   
+     const margin = size*2;
 
-  return {
-    left:  fastRandom() * (width - size),
-    top:   fastRandom() * (height - size)
-  };
-}
+    return {
+      left: margin + fastRandom() * (width - size - 2 * margin),
+      top: margin + fastRandom() * (height - size - 2 * margin)
+    };
+  }
+
+  
+
 
 // Findet nicht-überlappende Position mit optimierter Logik
 function getNonOverlappingPosition(size, existing, radius, width, height) {

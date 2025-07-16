@@ -638,9 +638,13 @@ sizeBtn.addEventListener('click', () => {
     target.style.width = sizes[currentSizeIndex] + 'px';
     target.style.height = sizes[currentSizeIndex] + 'px';
   });
+
+ 
   teleportAllTargets();
   updateTargetAppearance(); // Add this line
-
+  createTargets();
+  updateDisplays();
+  updateTargetAppearance(); // Add this line
 });
 
 modeBtn.addEventListener('click', () => {
