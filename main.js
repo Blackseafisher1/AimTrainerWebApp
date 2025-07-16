@@ -19,6 +19,8 @@ const toggleTargetBtn = document.getElementById('toggle-target');
 
 const scrollPreventer = e => e.preventDefault();
 
+const canVibrate = 'vibrate' in navigator;
+
 //worker varribles (position calc)
 const positionWorker = new Worker('positionWorker.js');
 const workerCallbacks = new Map();
@@ -460,10 +462,17 @@ async function createTargets() {
 }
 
 
+// Modify the handleTargetClick function
 function handleTargetClick(e, btn, size, index) {
   e.stopPropagation();
   playHitSound();
   
+  // Add vibration for mobile devices
+  if (canVibrate && isMobile) {
+    navigator.vibrate(30); // 30ms vibration
+  }
+  
+  // Rest of your existing code...
   const rect = btn.getBoundingClientRect();
   const areaRect = gameArea.getBoundingClientRect();
   createHitEffect(
@@ -472,7 +481,6 @@ function handleTargetClick(e, btn, size, index) {
     size
   );
   
-  // FÜGE DIESEN CODEBLOCK HINZU:
   combo++;
   const now = Date.now();
   if (lastHitTime > 0) {
@@ -480,13 +488,12 @@ function handleTargetClick(e, btn, size, index) {
     totalReactionTime += reactionTime;
   }
   lastHitTime = now;
-  // ENDE DES NEUEN CODES
 
   if (!roundStarted) {
     startRound();
   } else {
     score++;
-    totalShots++; // DIESE ZEILE HINZUGEFÜGT
+    totalShots++;
     updateDisplays();
 
     if (mode === 'multi' || mode === 'sniper') {
@@ -731,12 +738,18 @@ window.addEventListener('orientationchange', () => {
 });
 
 // Initialize game
+
 async function initGame() {
   await createTargets();
   updateDisplays();
   updateSoundStatus();
   updateSoundButtons();
   createAudioContext();
+  
+  // Log vibration support
+  if (!canVibrate) {
+    console.log('Vibration API not supported');
+  }
 }
 
 initGame();
