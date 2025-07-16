@@ -462,6 +462,20 @@ async function createTargets() {
 }
 
 
+function vibrate() {
+// Different patterns for different devices
+    if (/iPhone|iPad|iPod/i.test(navigator.userAgent)) {
+        // iOS - simple short vibration
+        navigator.vibrate(10);
+    } else {
+        // Android - can use more complex patterns
+        navigator.vibrate([20, 10, 20]);
+    }
+}
+
+
+
+
 // Modify the handleTargetClick function
 function handleTargetClick(e, btn, size, index) {
   e.stopPropagation();
@@ -469,7 +483,7 @@ function handleTargetClick(e, btn, size, index) {
   
   // Add vibration for mobile devices
   if (canVibrate && isMobile) {
-    navigator.vibrate(30); // 30ms vibration
+    vibrate();
   }
   
   // Rest of your existing code...
