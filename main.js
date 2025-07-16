@@ -20,8 +20,48 @@ const toggleTargetBtn = document.getElementById('toggle-target');
 const scrollPreventer = e => e.preventDefault();
 
 
-const canVibrate = "vibrate" in navigator;
-const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+// Vibration Controller (angepasst an Ihren bestehenden Code)
+const vibration = {
+  canVibrate: "vibrate" in navigator,
+  isIOS: /iPhone|iPad|iPod/i.test(navigator.userAgent),
+  audioContext: null, // Wird mit Ihrem bestehenden AudioContext geteilt
+
+  async vibrate() {
+    // 1. Standard-Vibration für Android
+    if (this.canVibrate && !this.isIOS) {
+      navigator.vibrate([30, 10, 30]);
+      return;
+    }
+
+    // 2. iOS-Haptic Feedback mit bestehendem AudioContext
+    if (this.isIOS && audioContext) { // Nutzt Ihren vorhandenen audioContext
+      try {
+        await resumeAudioContext(); // Nutzt Ihre vorhandene Funktion
+        
+        // Kurzer Impuls mit sehr hoher Frequenz (für Haptic Feedback)
+        const osc = audioContext.createOscillator();
+        const gain = audioContext.createGain();
+        
+        osc.type = 'square';
+        osc.frequency.value = 200; // Hohe Frequenz für besseres Feedback
+        gain.gain.value = 0.0001; // Fast unhörbar
+        
+        osc.connect(gain);
+        gain.connect(audioContext.destination);
+        
+        osc.start();
+        osc.stop(audioContext.currentTime + 0.015); // Sehr kurzer Impuls
+        
+      } catch (e) {
+        console.log("iOS Haptic Feedback failed:", e);
+      }
+    }
+  }
+};
+
+
+
+
 
 //worker varribles (position calc)
 const positionWorker = new Worker('positionWorker.js');
@@ -470,32 +510,6 @@ async function createTargets() {
 
 
 
-function vibrate() {
-  try {
-    // 1. Versuch: Standard-Vibration
-    if (canVibrate) {
-      navigator.vibrate(isIOS ? 10 : [30, 10, 30]);
-      return;
-    }
-    
-    // 2. Versuch: iOS-Audio-Hack
-    if (isIOS && (window.AudioContext || window.webkitAudioContext)) {
-      const ctx = new (window.AudioContext || window.webkitAudioContext)();
-      const osc = ctx.createOscillator();
-      osc.connect(ctx.destination);
-      osc.start();
-      osc.stop(ctx.currentTime + 0.02);
-      return;
-    }
-    
-    // 3. Versuch: Legacy-WebKit (selten benötigt)
-    if (window.webkit?.messageHandlers?.vibrate) {
-      window.webkit.messageHandlers.vibrate.postMessage(10);
-    }
-  } catch (e) {
-    console.error("Vibration fehlgeschlagen:", e);
-  }
-}
 
 
 
@@ -506,10 +520,7 @@ function handleTargetClick(e, btn, size, index) {
   playHitSound();
   
   // Add vibration for mobile devices
-  if (canVibrate) {
-    vibrate();
-  }
-  
+  vibration.vibrate();
   // Rest of your existing code...
   const rect = btn.getBoundingClientRect();
   const areaRect = gameArea.getBoundingClientRect();
