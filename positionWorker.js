@@ -70,7 +70,7 @@ function getNonOverlappingPosition(size, existing, radius, width, height) {
   }
   
   // Originale Logik für radiale Platzierung (Single/Multi-Modus)
-  for (let tries = 0; tries < 500; tries++) {
+  for (let tries = 0; tries < 100; tries++) {
     const angle = fastRandom() * Math.PI * 2;
     const distance = fastRandom() * radius;
     
