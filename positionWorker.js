@@ -34,42 +34,69 @@ function getRandomPosition(size, width, height) {
 // Findet nicht-überlappende Position mit optimierter Logik
 // positionWorker.js
 function getNonOverlappingPosition(size, existing, radius, width, height) {
-  const minDist = size * 1.1; // 10% Abstand
-  const minDistSq = minDist * minDist;
+ const minDist = radius === 'full' ? size * 1.5 : size * 1.1;//mindestabstand basierend auf dem modus (sniper oder nicht)
   const centerX = width / 2;
   const centerY = height / 2;
   const maxLeft = width - size;
   const maxTop = height - size;
-  
-  // Verbesserte Logik für 'full' radius (Sniper-Modus)
+
+  // Sniper-Modus (full radius)
   if (radius === 'full') {
-    // Versuche 1: Versuche Positionen mit reduziertem Rand
-    for (let tries = 0; tries < 300; tries++) {
+   
+    // Phase 1: Schnelle zufällige Versuche
+    for (let tries = 0; tries < 50; tries++) {
       const candidate = {
-        left: size/2 + fastRandom() * (width - size*2),
-        top: size/2 + fastRandom() * (height - size*2)
+        left: size + fastRandom() * (width - size * 2),
+        top: size + fastRandom() * (height - size * 2)
       };
       
-      // Prüfe auf Kollisionen
-      let valid = true;
-      for (const pos of existing) {
-        if ((pos.left - candidate.left) ** 2 + (pos.top - candidate.top) ** 2 < minDistSq) {
-          valid = false;
-          break;
-        }
+      if (!existing.some(pos => isOverlapping(pos, candidate, minDist))) {
+        return candidate;
       }
-      
-      if (valid) return candidate;
     }
-    
-    // Versuche 2: Notfall mit minimalem Rand
-    return {
-      left: 5 + fastRandom() * (width - size*2),
-      top: 5 + fastRandom() * (height - size *2)
-    };
+
+    // Phase 2: Gezielte Sektor-Suche
+    if (existing.length > 0) {
+      const sectorSize = Math.max(size * 3, 150);
+      const cols = Math.ceil(width / sectorSize);
+      const rows = Math.ceil(height / sectorSize);
+      
+      const sectorCounts = new Uint8Array(cols * rows);
+      existing.forEach(pos => {
+        const col = Math.min(cols-1, Math.floor(pos.left / sectorSize));
+        const row = Math.min(rows-1, Math.floor(pos.top / sectorSize));
+        sectorCounts[row * cols + col]++;
+      });
+
+      for (let tries = 0; tries < 25; tries++) {
+        const leastUsedSector = sectorCounts.indexOf(Math.min(...sectorCounts));
+        const col = leastUsedSector % cols;
+        const row = Math.floor(leastUsedSector / cols);
+        
+        const candidate = {
+          left: col * sectorSize + size/2 + fastRandom() * (sectorSize - size),
+          top: row * sectorSize + size/2 + fastRandom() * (sectorSize - size)
+        };
+        
+        if (!existing.some(pos => isOverlapping(pos, candidate, minDist))) {
+          return candidate;
+        }
+        sectorCounts[leastUsedSector]++;
+      }
+    }
+
+    // Phase 3: Notfall-Lösung
+    for (let tries = 0; tries < 10; tries++) {
+      const candidate = getRandomPosition(size, width, height);
+      if (!existing.some(pos => isOverlapping(pos, candidate, size))) {
+        return candidate;
+      }
+    }
+
+    return getRandomPosition(size, width, height);
   }
-  
-  // Originale Logik für radiale Platzierung (Single/Multi-Modus)
+
+  // Single/Multi-Modus (radiale Platzierung)
   for (let tries = 0; tries < 100; tries++) {
     const angle = fastRandom() * Math.PI * 2;
     const distance = fastRandom() * radius;
@@ -86,18 +113,16 @@ function getNonOverlappingPosition(size, existing, radius, width, height) {
     
     const candidate = { left, top };
     
-    if (!existing.some(pos => 
-      (pos.left - candidate.left) ** 2 + (pos.top - candidate.top) ** 2 < minDistSq
-    )) {
+    if (!existing.some(pos => isOverlapping(pos, candidate, minDist))) {
       return candidate;
     }
   }
   
   // Fallback für Single/Multi-Modus
-return {
-  left: Math.max(0, fastRandom() * (width - size)),
-  top: Math.max(0, fastRandom() * (height - size))
-};
+  return {
+    left: Math.max(0, fastRandom() * (width - size)),
+    top: Math.max(0, fastRandom() * (height - size))
+  };
 }
 
 // Worker-Handler
