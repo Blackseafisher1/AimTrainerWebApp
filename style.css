@@ -20,6 +20,7 @@
           #66d9ff, 
           #a855f7, 
           #dc6bff);
+          background-clip:text;
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       letter-spacing: 2px;
@@ -489,6 +490,7 @@
     #sound-volume {
       width: 80%;
       margin: 10px 0;
+      appearance: none;
       -webkit-appearance: none;
       height: 8px;
       border-radius: 4px;
@@ -811,6 +813,7 @@
           #66d9ff, 
           #a855f7, 
           #dc6bff);
+          
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       letter-spacing: 2px;

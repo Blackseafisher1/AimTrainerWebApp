@@ -383,23 +383,26 @@ async function getNonOverlappingPosition(size, existing, radius) {
     });
   });
 }
+// Sollte async sein, da sie auf Worker wartet
 async function moveTargetToNewPosition(targetIndex) {
   const size = sizes[currentSizeIndex];
   const radius = settings[mode].radius;
-  const existing = lastPositions.filter((_, i) => i !== targetIndex);
   
-  try {
-    const pos = await getNonOverlappingPosition(size, existing, radius);
-    lastPositions[targetIndex] = pos;
-    targets[targetIndex].style.left = pos.left + 'px';
-    targets[targetIndex].style.top = pos.top + 'px';
-  } catch (err) {
-    console.error('Position error:', err);
-    const pos = await getRandomPosition(size);
-    lastPositions[targetIndex] = pos;
-    targets[targetIndex].style.left = pos.left + 'px';
-    targets[targetIndex].style.top = pos.top + 'px';
-  }
+  // Existierende Positionen sammeln
+  const existing = targets
+    .filter((_, i) => i !== targetIndex)
+    .map(t => ({
+      left: parseFloat(t.style.left),
+      top: parseFloat(t.style.top)
+    }))
+    .filter(pos => !isNaN(pos.left));
+
+  // Worker für Positionierung nutzen
+  let  pos = await getNonOverlappingPosition(size, existing, radius);
+  
+  // Neue Position setzen
+  targets[targetIndex].style.left = `${Math.max(0, Math.min(pos.left, gameArea.offsetWidth - size))}px`;
+  targets[targetIndex].style.top = `${Math.max(0, Math.min(pos.top, gameArea.offsetHeight - size))}px`;
 }
 
 async function teleportAllTargets() {
@@ -493,43 +496,36 @@ async function createTargets() {
   updateTargetAppearance();
 }
 
-// Modify the handleTargetClick function
+// handleTargetClick kann synchron bleiben
 function handleTargetClick(e, btn, size, index) {
   e.stopPropagation();
   playHitSound();
-  
 
- 
-  // Rest of your existing code...
+  // Synchroner Teil
   const rect = btn.getBoundingClientRect();
   const areaRect = gameArea.getBoundingClientRect();
   createHitEffect(
-    rect.left - areaRect.left + size/2, 
+    rect.left - areaRect.left + size/2,
     rect.top - areaRect.top + size/2,
     size
   );
-  
-  combo++;
-  const now = Date.now();
-  if (lastHitTime > 0) {
-    const reactionTime = (now - lastHitTime) / 1000;
-    totalReactionTime += reactionTime;
-  }
-  lastHitTime = now;
 
-  if (!roundStarted) {
-    startRound();
-  } else {
-    score++;
-    totalShots++;
-    updateDisplays();
-
-    if (mode === 'multi' || mode === 'sniper') {
-      moveTargetToNewPosition(index);
+  // Asynchronen Teil starten
+  moveTargetToNewPosition(index).then(() => {
+    if (!roundStarted) {
+      startRound();
     } else {
-      teleportAllTargets();
+      score++;
+      totalShots++;
+      combo++;
+      const now = Date.now();
+      if (lastHitTime > 0) {
+        totalReactionTime += (now - lastHitTime) / 1000;
+      }
+      lastHitTime = now;
     }
-  }
+    updateDisplays();
+  });
 }
 
 function startRound() {
