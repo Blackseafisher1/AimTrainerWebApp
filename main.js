@@ -277,8 +277,8 @@ let avgReactionTime = 0;
 let totalShots = 0;
 
 const settings = {
-  single: { count: 1, radius: isMobile ? 300 : 400 },
-  multi: { count: 3, radius: isMobile ? 200 : 300 },
+  single: { count: 1, radius: isMobile ? 350 : 450 },
+  multi: { count: 3, radius: isMobile ? 250 : 350 },
   sniper: { count: 2, radius: 'full' }
 };
 
@@ -366,7 +366,6 @@ async function getRandomPosition(size) {
     });
   });
 }
-
 async function getNonOverlappingPosition(size, existing, radius) {
   return new Promise((resolve, reject) => {
     const id = requestId++;
@@ -384,8 +383,6 @@ async function getNonOverlappingPosition(size, existing, radius) {
     });
   });
 }
-
-
 async function moveTargetToNewPosition(targetIndex) {
   const size = sizes[currentSizeIndex];
   const radius = settings[mode].radius;
@@ -406,28 +403,39 @@ async function moveTargetToNewPosition(targetIndex) {
 }
 
 async function teleportAllTargets() {
+    await new Promise(resolve => requestAnimationFrame(resolve));
+
   const size = sizes[currentSizeIndex];
   const radius = settings[mode].radius;
   lastPositions = [];
 
+  // Container-Größe mit Schutz vor Null/negativ
+  const width = Math.max(50, gameArea.offsetWidth);
+  const height = Math.max(50, gameArea.offsetHeight);
+
   for (let i = 0; i < targets.length; i++) {
     try {
-      const pos = await getNonOverlappingPosition(size, lastPositions, radius);
+      const pos = await getNonOverlappingPosition(size, lastPositions, radius, width, height);
       lastPositions.push(pos);
-      targets[i].style.left = pos.left + 'px';
-      targets[i].style.top = pos.top + 'px';
+      
+      // Position begrenzen
+      targets[i].style.left = Math.max(0, Math.min(pos.left, width - size)) + 'px';
+      targets[i].style.top = Math.max(0, Math.min(pos.top, height - size)) + 'px';
+      
     } catch (err) {
       console.error('Position error:', err);
-      const pos = await getRandomPosition(size);
+      const pos = await getRandomPosition(size, width, height);
       lastPositions.push(pos);
-      targets[i].style.left = pos.left + 'px';
-      targets[i].style.top = pos.top + 'px';
+      
+      // Position begrenzen
+      targets[i].style.left = Math.max(0, Math.min(pos.left, width - size)) + 'px';
+      targets[i].style.top = Math.max(0, Math.min(pos.top, height - size)) + 'px';
     }
   }
 }
 
 async function createTargets() {
-  // First remove existing targets
+  // Remove existing targets
   targets.forEach(t => {
     if (t.parentNode === gameArea) {
       gameArea.removeChild(t);
@@ -460,20 +468,30 @@ async function createTargets() {
     targets.push(btn);
   }
 
-  await teleportAllTargets();
+  await new Promise(resolve => requestAnimationFrame(resolve));
+
+  // Horizontal centered single line positioning
+  const padding = 45; // Abstand zwischen Targets
+  const containerWidth = gameArea.offsetWidth;
+  const containerHeight = gameArea.offsetHeight;
+
+  // Calculate total width of all targets with padding
+  const totalWidth = (count * size) + ((count - 1) * padding);
+
+  // Center horizontally
+  const startX = (containerWidth - totalWidth) / 2;
+  
+  // Vertical center (mittig im Container)
+  const startY = (containerHeight - size) / 2;
+
+  // Position all targets in one horizontal line
+  for (let i = 0; i < count; i++) {
+    targets[i].style.left = `${startX + i * (size + padding)}px`;
+    targets[i].style.top = `${startY}px`;
+  }
+   await new Promise(resolve => requestAnimationFrame(resolve)); 
   updateTargetAppearance();
 }
-
-
-
-
-
-
-
-
-
-
-
 
 // Modify the handleTargetClick function
 function handleTargetClick(e, btn, size, index) {
@@ -481,6 +499,7 @@ function handleTargetClick(e, btn, size, index) {
   playHitSound();
   
 
+ 
   // Rest of your existing code...
   const rect = btn.getBoundingClientRect();
   const areaRect = gameArea.getBoundingClientRect();
@@ -648,22 +667,27 @@ if (isMobile) {
   });
 }
 
-sizeBtn.addEventListener('click', () => {
+sizeBtn.addEventListener('click', async () => {
   currentSizeIndex = (currentSizeIndex + 1) % sizes.length;
+  const size = sizes[currentSizeIndex];
+  // Update target sizes
   targets.forEach(target => {
-    target.style.width = sizes[currentSizeIndex] + 'px';
-    target.style.height = sizes[currentSizeIndex] + 'px';
+    target.style.width = size + 'px';
+    target.style.height = size + 'px';
   });
-
  
-  teleportAllTargets();
-  updateTargetAppearance(); // Add this line
-  createTargets();
+  await createTargets();
   updateDisplays();
-  updateTargetAppearance(); // Add this line
 });
 
-modeBtn.addEventListener('click', () => {
+
+
+
+
+
+
+
+modeBtn.addEventListener('click', async () => {
   if (roundStarted) {
     endRound();
  } 
@@ -675,9 +699,9 @@ modeBtn.addEventListener('click', () => {
     mode = 'single';
   }
 
-  createTargets();
+  await createTargets();
   updateDisplays();
-  updateTargetAppearance(); // Add this line
+  
 
 });
 

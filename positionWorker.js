@@ -15,16 +15,19 @@ function isOverlapping(pos1, pos2, minDistance) {
   return (dx * dx + dy * dy) < (minDistance * minDistance);
 }
 
-// Generiert zufällige Position mit Randabstand
 function getRandomPosition(size, width, height) {
-    let margin = size*2;
-    return {
-      left: margin + fastRandom() * (width - size - 2 * margin),
-      top: margin + fastRandom() * (height - size - 2 * margin)
-    };
-  }
-
-
+  // Sicherstellen, dass der Rand nicht größer als der Container ist
+  const margin = Math.min(size * 2, width / 4, height / 4);
+  
+  // Verfügbaren Platz berechnen (mindestens 0)
+  const availableWidth = Math.max(0, width - size - 2 * margin);
+  const availableHeight = Math.max(0, height - size - 2 * margin);
+  
+  return {
+    left: margin + (availableWidth > 0 ? fastRandom() * availableWidth : 0),
+    top: margin + (availableHeight > 0 ? fastRandom() * availableHeight : 0)
+  };
+}
   
 
 
@@ -67,7 +70,7 @@ function getNonOverlappingPosition(size, existing, radius, width, height) {
   }
   
   // Originale Logik für radiale Platzierung (Single/Multi-Modus)
-  for (let tries = 0; tries < 150; tries++) {
+  for (let tries = 0; tries < 500; tries++) {
     const angle = fastRandom() * Math.PI * 2;
     const distance = fastRandom() * radius;
     
@@ -91,10 +94,10 @@ function getNonOverlappingPosition(size, existing, radius, width, height) {
   }
   
   // Fallback für Single/Multi-Modus
-  return {
-    left: size + fastRandom() * (width - size * 3),
-    top: size + fastRandom() * (height - size * 3)
-  };
+return {
+  left: Math.max(0, fastRandom() * (width - size)),
+  top: Math.max(0, fastRandom() * (height - size))
+};
 }
 
 // Worker-Handler

@@ -117,7 +117,7 @@
       position: absolute;
       border-radius: 50%;
       cursor: crosshair;
-      transition: background-color 0.2s ease, box-shadow 0.2s ease, transform 0.1s ease-out;
+      transition: background-color 0.2s ease, box-shadow 0.13s ease-in-out, transform 0.1s ease-out;
       z-index: 10;
       /* Anti-aliasing enhancements */
       -webkit-backface-visibility: hidden;
