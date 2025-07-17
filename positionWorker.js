@@ -44,7 +44,7 @@ function getNonOverlappingPosition(size, existing, radius, width, height) {
   // Verbesserte Logik für 'full' radius (Sniper-Modus)
   if (radius === 'full') {
     // Versuche 1: Versuche Positionen mit reduziertem Rand
-    for (let tries = 0; tries < 150; tries++) {
+    for (let tries = 0; tries < 300; tries++) {
       const candidate = {
         left: size/2 + fastRandom() * (width - size*2),
         top: size/2 + fastRandom() * (height - size*2)
