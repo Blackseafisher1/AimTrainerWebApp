@@ -114,7 +114,7 @@
       .target {
       -webkit-touch-callout: none;
       backface-visibility: hidden;
-      will-change: transform; /* GPU acceleration */
+       will-change: transform, opacity;/* gpu-acceleration */
       position: absolute;
       border-radius: 50%;
       cursor: crosshair;
@@ -127,7 +127,7 @@
       -moz-osx-font-smoothing: grayscale;
       outline: 1px solid transparent; /* Forces GPU rendering in some browsers */
       transform: translateZ(0); /* GPU acceleration */
-      filter: blur(0.5px); /* Subtle blur to soften edges (adjust as needed) */
+      filter: blur(0.5px); /* Subtle blur to soften edges */
     }
 
     /* ADDED: Red mode styles */
