@@ -438,7 +438,7 @@ async function teleportAllTargets() {
 }
 
 async function createTargets() {
-  // Remove existing targets
+  // Alte Targets entfernen
   targets.forEach(t => {
     if (t.parentNode === gameArea) {
       gameArea.removeChild(t);
@@ -449,53 +449,36 @@ async function createTargets() {
   const count = settings[mode].count;
   const size = sizes[currentSizeIndex];
 
-  // Create new targets
+  // Neue Targets erstellen
   for (let i = 0; i < count; i++) {
     const btn = document.createElement('button');
     btn.className = useImageTarget ? 'target image-mode' : 'target red-mode';
-    btn.style.width = size + 'px';
-    btn.style.height = size + 'px';
+    btn.style.width = `${size}px`;
+    btn.style.height = `${size}px`;
+    btn.dataset.index = i; // WICHTIG: Index speichern
+
+    // Event-Listener mit korrektem Index-Closure
+    const handleClick = (e) => {
+      handleTargetClick(e, btn, size, i); // i wird korrekt gebunden
+    };
 
     if (isMobile) {
       btn.addEventListener('touchstart', (e) => {
         e.preventDefault();
-        handleTargetClick(e, btn, size, i);
+        handleClick(e);
       });
+    } else {
+      btn.addEventListener('click', handleClick);
     }
 
-    btn.addEventListener('click', (e) => {
-      handleTargetClick(e, btn, size, i);
-    });
-    
     gameArea.appendChild(btn);
     targets.push(btn);
   }
 
   await new Promise(resolve => requestAnimationFrame(resolve));
-
-  // Horizontal centered single line positioning
-  const padding = 45; // Abstand zwischen Targets
-  const containerWidth = gameArea.offsetWidth;
-  const containerHeight = gameArea.offsetHeight;
-
-  // Calculate total width of all targets with padding
-  const totalWidth = (count * size) + ((count - 1) * padding);
-
-  // Center horizontally
-  const startX = (containerWidth - totalWidth) / 2;
-  
-  // Vertical center (mittig im Container)
-  const startY = (containerHeight - size) / 2;
-
-  // Position all targets in one horizontal line
-  for (let i = 0; i < count; i++) {
-    targets[i].style.left = `${startX + i * (size + padding)}px`;
-    targets[i].style.top = `${startY}px`;
-  }
-   await new Promise(resolve => requestAnimationFrame(resolve)); 
+  await teleportAllTargets();
   updateTargetAppearance();
 }
-
 // handleTargetClick kann synchron bleiben
 function handleTargetClick(e, btn, size, index) {
   e.stopPropagation();

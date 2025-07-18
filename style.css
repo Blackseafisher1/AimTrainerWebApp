@@ -690,10 +690,7 @@
       }
       
       /* Adjust target sizes for better touch accuracy */
-      .target {
-        min-width: 80px;
-        min-height: 80px;
-      }
+    
     }
     
     @media (max-width: 600px) {
@@ -736,9 +733,6 @@
       .target {
         border-width: 10px;
         box-shadow: 0px 0px 25px yellow;
-        /* Increase minimum size for better touch targets */
-        min-width: 70px;
-        min-height: 70px;
       }
       
       .target:active {
