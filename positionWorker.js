@@ -17,8 +17,14 @@ function isOverlapping(pos1, pos2, minDistance) {
 
 function getRandomPosition(size, width, height) {
   // Sicherstellen, dass der Rand nicht größer als der Container ist
-  const margin = Math.min(size * 2, width / 4, height / 4);
   
+ 
+  
+  const margin = (
+  size <= 40 ? Math.min(size * 2, width / 70, height / 35) :
+  size <= 70 ? Math.min(size * 2, width / 40, height / 30) :
+               Math.min(size * 2, width / 8, height / 8)
+);
   // Verfügbaren Platz berechnen (mindestens 0)
   const availableWidth = Math.max(0, width - size - 2 * margin);
   const availableHeight = Math.max(0, height - size - 2 * margin);
@@ -34,7 +40,7 @@ function getRandomPosition(size, width, height) {
 // Findet nicht-überlappende Position mit optimierter Logik
 // positionWorker.js
 function getNonOverlappingPosition(size, existing, radius, width, height) {
- const minDist = radius === 'full' ? size * 1.5 : size * 1.1;//mindestabstand basierend auf dem modus (sniper oder nicht)
+ const minDist = radius === 'full' ? size * 2 : size * 1.5;//mindestabstand basierend auf dem modus (sniper oder nicht)
   const centerX = width / 2;
   const centerY = height / 2;
   const maxLeft = width - size;
@@ -46,8 +52,8 @@ function getNonOverlappingPosition(size, existing, radius, width, height) {
     // Phase 1: Schnelle zufällige Versuche
     for (let tries = 0; tries < 50; tries++) {
       const candidate = {
-        left: size + fastRandom() * (width - size * 2),
-        top: size + fastRandom() * (height - size * 2)
+        left: size + fastRandom() * (width - size * 3),
+        top: size + fastRandom() * (height - size * 3)
       };
       
       if (!existing.some(pos => isOverlapping(pos, candidate, minDist))) {
@@ -97,7 +103,7 @@ function getNonOverlappingPosition(size, existing, radius, width, height) {
   }
 
   // Single/Multi-Modus (radiale Platzierung)
-  for (let tries = 0; tries < 100; tries++) {
+  for (let tries = 0; tries < 150; tries++) {
     const angle = fastRandom() * Math.PI * 2;
     const distance = fastRandom() * radius;
     

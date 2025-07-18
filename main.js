@@ -277,8 +277,8 @@ let avgReactionTime = 0;
 let totalShots = 0;
 
 const settings = {
-  single: { count: 1, radius: isMobile ? 350 : 450 },
-  multi: { count: 3, radius: isMobile ? 250 : 350 },
+  single: { count: 1, radius: isMobile ? 250 : 450 },
+  multi: { count: 3, radius: isMobile ? 200 : 350 },
   sniper: { count: 2, radius: 'full' }
 };
 
