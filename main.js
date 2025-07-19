@@ -266,10 +266,45 @@ async function playHitSound() {
   }
 }
 
+
+
+
+//Toggle between hiteffects on/off
+let disableHitteffect = true;
+const hitOnOffBtn = document.getElementById('hitEffectOnOff');
+document.getElementById('hitEffectOnOff')
+
+function checkHitEffect(){
+ if (disableHitteffect === false) {
+  disableHitteffect = true;
+   document.getElementById('hitEffectOnOff').innerText="Turn ON";
+   hitOnOffBtn.style.background= "rgba(30, 255, 0, 0.4)"
+   hitOnOffBtn.style.color= "rgb(0, 255, 0)"
+   hitOnOffBtn.style.boxShadow= "0px 0px 5px green"
+    document.documentElement.style.setProperty('--x','rgba(0, 255, 0, 1)');
+  
+
+ }
+ else {
+  disableHitteffect = false;
+  document.getElementById('hitEffectOnOff').innerText="Turn OFF";
+  hitOnOffBtn.style.background= "rgba(255, 0, 0, 0.4)"
+  hitOnOffBtn.style.color= "rgb(255, 0, 0)"
+  hitOnOffBtn.style.boxShadow= "0px 0px 5px red"
+   document.documentElement.style.setProperty('--x','rgba(255, 0, 0, 1)');
+ }
+
+
+}
+hitOnOffBtn.addEventListener("click", checkHitEffect)
+
+
 // Create visual hit effect
 
 function createHitEffect(x, y, size) {
   // Mindestgröße festlegen
+
+ if(disableHitteffect) return;
   const minSize = 0;
   
   // Effektgröße berechnen (mindestens minSize)
@@ -296,7 +331,7 @@ function createHitEffect(x, y, size) {
     
     // Animation zurücksetzen
     effect.style.animation = 'none';
-    void effect.offsetWidth;
+    //void effect.offsetWidth;
     
     // Richtige Animation basierend auf Typ setzen
     if (useAlternativeHitEffect) {
@@ -309,6 +344,7 @@ function createHitEffect(x, y, size) {
       effect.style.display = 'none';
     }, 300);
   }
+  
 }
 
 function toggleHitEffect() {
@@ -889,6 +925,7 @@ async function initGame() {
   initHitEffectPool();
   updateTargetAppearance();
   updateHitEffectButton(); // Button-Text initialisieren
+  checkHitEffect();
 }
 
 initGame();

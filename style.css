@@ -9,6 +9,7 @@
   --hit-effect-color-100: rgba(255, 0, 0, 0.2);
 
   --hit-effect2:rgb(255, 0, 0,);
+  --x:red;
 }
  
  body {
@@ -482,7 +483,7 @@
 
   /* SAFE version that won't break functionality */
 #sound-controls h3.hit-effects-title {
-  margin: 20px 0 2px 0;
+  margin: 10px 0 2px 0;
   display: block; /* Ensures proper margin application */
   position: relative; /* Contains the element */
   z-index: 1; /* Keeps it above other elements */
@@ -626,8 +627,14 @@
       border-radius: 4px;
       background: #444;
       outline: none;
+       
     }
-    
+    #volumeHiteffect{
+      background-color: rgb(122, 122, 122) !important;
+    }
+
+
+
     #sound-volume::-webkit-slider-thumb {
       -webkit-appearance: none;
       width: 20px;
@@ -721,6 +728,59 @@
   border-color: #ffcc00;
   cursor: pointer;
 }
+#hitEffectOnOff {
+  position: relative;
+  isolation: isolate; /* ✅ Damit ::after mit z-index: -1 unter dem Button liegt */
+  margin-top: 10px;
+  box-shadow: 0px 0px 10px var(--x) !important;
+  border-color: var(--x);
+  transition: all 0.35s ease-in-out;
+  z-index: 1000;
+  overflow: visible;
+}
+
+#hitEffectOnOff:hover {
+  filter: brightness(90%);
+  transform: scale(1.05) translateY(2px);
+  box-shadow: 0px 0px 15px var(--x) !important;
+}
+
+#hitEffectOnOff:active {
+  filter: brightness(80%);
+  transform: scale(1.05) translateY(6px);
+  box-shadow: 0px 0px 5px var(--x) !important;
+}
+
+#hitEffectOnOff::after {
+
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color:rgba(0, 0, 0, 0.103);
+  z-index: -1;
+  transform: translateY(3px) scale(1.2);
+  filter: brightness(20%);
+  opacity: 0.5;
+  transition: all 0.35s ease-in-out;
+  pointer-events: none;
+  border-radius: inherit;
+  transform: translateY(8px)  scale(1.4);
+}
+
+#hitEffectOnOff:hover::after {
+  opacity: 1;
+  transform: translateY(4px)   scale(1.2); /* ✅ fixed syntax */
+}
+
+#hitEffectOnOff:active::after {
+  opacity: 1;
+  transform: translateY(2px)   scale(1.1);
+}
+
+        
 
 
 
@@ -832,6 +892,10 @@
   height: 80px !important
 }
   */
+
+
+
+
 
 
 .hitEffect {
