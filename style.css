@@ -363,7 +363,7 @@
   background: var(--hit-effect-color);
   pointer-events: none;
   z-index: 1000;
-  border: 0px solid transparent !important;
+  border: 0px solid transparent;
   opacity: 1;
   transform: translateY(-100px) scale(0.3);
   filter: blur(2px);
@@ -394,49 +394,49 @@
   50% {
     transform: translateY(0) scale(1);
     background: var(--hit-effect-color-70);
-    border: 5px solid rgba(255, 255, 255) !important;
+    border: 5px solid rgba(255, 255, 255);
     filter: blur(10px);
   }
    70% {
     transform: translateY(0) scale(1.5);
     background: var(--hit-effect-color-80);
-    border: 5px solid rgba(255, 255, 255) !important;
+    border: 5px solid rgba(255, 255, 255) ;
     filter: blur(15px);
   }
   80% {
     transform: translateY(0) scale(2.0);
     background: var(--hit-effect-color-80);
-    border: 15px solid rgba(255, 255, 255, 0.726) !important;
+    border: 15px solid rgba(255, 255, 255, 0.726);
     filter: blur(20px);
   }
   85% {
     transform: translateY(0) scale(3.0);
     background: var(--hit-effect-color-85);
-    border: 5px solid rgba(255, 255, 255, 0.4) !important;
+    border: 5px solid rgba(255, 255, 255, 0.4);
     filter: blur(25px);
   }
   90% {
     transform: translateY(0) scale(4.0);
     background: var(--hit-effect-color-85);
-    border: 5px solid rgba(255, 255, 255, 0.1) !important;
+    border: 5px solid rgba(255, 255, 255, 0.1) ;
     filter: blur(25px);
   }
   95% {
     transform: translateY(0) scale(0.4);
     background: var(--hit-effect-color-100);
-    border: 0px !important;
+    border: 0px ;
     filter: blur(10px);
   }
   98% {
     transform: translateY(0) scale(0.1);
     background: var(--hit-effect-color-100);
-    border: 0px !important;
+    border: 0px ;
     filter: blur(10px);
   }
   100% {
     transform: translateY(0) scale(0.0);
     background: var(--hit-effect-color-100);
-    border: 0px !important;
+    border: 0px ;
     filter: blur(5px);
   }
 }
@@ -447,23 +447,29 @@
   pointer-events: none;
   z-index: 1000;
   animation: hitEffect2 0.3s ease-out forwards;
-  will-change: opacity, filter;
-  border: 20px solid rgba(255, 255, 255, 0.8) !important;
+  will-change: transform, opacity; /* Nur notwendige Eigenschaften */
+  border: 20px solid rgba(255, 255, 255);
+  /* GPU-Optimierungen: */
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  contain: content;
 }
 
 @keyframes hitEffect2 {
   0% { 
-    transform: scale(0.1);
+    transform: scale(0.1) translateZ(0); /* GPU-Beschleunigung */
     opacity: 1.0;
-    border: 10px solid rgba(255, 255, 255) !important;
+    border: 10px solid rgba(255, 255, 255) ;
+    filter: none; /* Filter entfernen falls vorhanden */
   }
   100% {
-    transform: scale(2);
+    transform: scale(2) translateZ(0); /* GPU-Beschleunigung */
     opacity: 0.0;
-    border: 10px solid rgba(255, 255, 255, 0.5) !important;
+    border: 10px solid rgba(255, 255, 255, 0.5);
+    filter: none; /* Filter entfernen falls vorhanden */
   }
 }
-
 
   /* SAFE version that won't break functionality */
 #sound-controls h3.hit-effects-title {
@@ -824,23 +830,29 @@
   pointer-events: none;
   z-index: 1000;
   animation: hitEffect2 0.3s ease-out forwards;
-  will-change: opacity, filter;
-  border: 10px solid rgba(255, 255, 255, 0.8) !important;
+  will-change: transform, opacity; /* Nur notwendige Eigenschaften */
+  border: 10px solid rgba(255, 255, 255) ;
+  /* GPU-Optimierungen: */
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  contain: content;
 }
 
 @keyframes hitEffect2 {
   0% { 
-    transform: scale(0.1);
+    transform: scale(0.1) translateZ(0); /* GPU-Beschleunigung */
     opacity: 1.0;
-    border: 5px solid rgba(255, 255, 255) !important;
+    border: 5px solid rgba(255, 255, 255) ;
+    filter: none; /* Filter entfernen falls vorhanden */
   }
   100% {
-    transform: scale(2);
+    transform: scale(2) translateZ(0); /* GPU-Beschleunigung */
     opacity: 0.0;
-    border: 5px solid rgba(255, 255, 255, 0.5) !important;
+    border: 5px solid rgba(255, 255, 255, 0.5);
+    filter: none; /* Filter entfernen falls vorhanden */
   }
 }
-
 
 
 
