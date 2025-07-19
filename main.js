@@ -20,6 +20,48 @@ const toggleTargetBtn = document.getElementById('toggle-target');
 const scrollPreventer = e => e.preventDefault();
 
 
+let useAlternativeHitEffect = false;
+
+// Initialisierung aus localStorage
+if (localStorage.getItem('useAlternativeHitEffect') === 'true') {
+  useAlternativeHitEffect = true;
+}
+
+const hitEffectPool = [];
+const POOL_SIZE = 25;
+
+function initHitEffectPool() {
+  for (let i = 0; i < POOL_SIZE; i++) {
+    const effect = document.createElement('div');
+    effect.className = 'hitEffect';
+    effect.style.display = 'none';
+    gameArea.appendChild(effect);
+    hitEffectPool.push(effect);
+  }
+}
+
+
+
+//show current sound
+const fileNameSpan = document.getElementById('file-name');
+
+soundUpload.addEventListener('change', function () {
+
+  let name=null;
+  if (this.files.length > 0) {
+    
+    name =this.files[0].name;
+     
+    if (name.length > 30) {
+      name = name.slice(0, 27)+"...";
+    }
+    fileNameSpan.textContent = "Current sound: " +name;
+  } else {
+    fileNameSpan.textContent = "No sound uploaded";
+  }
+});
+
+
 
 
 
@@ -225,22 +267,77 @@ async function playHitSound() {
 }
 
 // Create visual hit effect
+
 function createHitEffect(x, y, size) {
-  const effect = document.createElement('div');
-  effect.className = 'hit-effect';
-  effect.style.left = `${x - size/2}px`;
-  effect.style.top = `${y - size/2}px`;
-  effect.style.width = `${size}px`;
-  effect.style.height = `${size}px`;
- 
-  gameArea.appendChild(effect);
+  // Mindestgröße festlegen
+  const minSize = 80;
   
-  setTimeout(() => {
-    if (effect.parentNode === gameArea) {
-      gameArea.removeChild(effect);
+  // Effektgröße berechnen (mindestens minSize)
+  const effectSize = Math.max(minSize, size * 0.9);
+  
+  let effect = hitEffectPool.find(e => e.style.display === 'none');
+  
+  if (!effect && hitEffectPool.length <= 25) {
+    effect = document.createElement('div');
+    effect.style.display = 'none';
+    gameArea.appendChild(effect);
+    hitEffectPool.push(effect);
+  }
+  
+  if (effect) {
+    // Klasse basierend auf aktuellem Animationstyp setzen
+    effect.className = useAlternativeHitEffect ? 'hitEffect2' : 'hitEffect';
+    
+    effect.style.left = `${x - effectSize/2}px`;
+    effect.style.top = `${y - effectSize/2}px`;
+    effect.style.width = `${effectSize}px`;
+    effect.style.height = `${effectSize}px`;
+    effect.style.display = 'block';
+    
+    // Animation zurücksetzen
+    effect.style.animation = 'none';
+    void effect.offsetWidth;
+    
+    // Richtige Animation basierend auf Typ setzen
+    if (useAlternativeHitEffect) {
+      effect.style.animation = 'hitEffect2 0.3s ease-out forwards';
+    } else {
+      effect.style.animation = 'hitEffect 0.3s ease-out forwards';
     }
-  }, 600);
+    
+    setTimeout(() => {
+      effect.style.display = 'none';
+    }, 300);
+  }
 }
+
+function toggleHitEffect() {
+  useAlternativeHitEffect = !useAlternativeHitEffect;
+  localStorage.setItem('useAlternativeHitEffect', useAlternativeHitEffect);
+  updateHitEffectButton();
+}
+
+function updateHitEffectButton() {
+  const btn = document.getElementById('toggle-hit-effect');
+  if (btn) {
+    btn.textContent = useAlternativeHitEffect 
+      ? "Switch to Explosion" 
+      : "Switch to Pulse";
+  }
+}
+
+// Button-Event hinzufügen
+document.getElementById('toggle-hit-effect').addEventListener('click', toggleHitEffect);
+
+
+
+
+
+
+
+
+
+
 
 const roundTime = 60;
 let timeLeft = roundTime;
@@ -717,7 +814,9 @@ if (localStorage.getItem('useImageTarget') === 'true') {
     useImageTarget = true;
 }
 
+
 function updateTargetAppearance() {
+    // Update target classes
     targets.forEach(target => {
         if (useImageTarget) {
             target.classList.add('image-mode');
@@ -727,7 +826,28 @@ function updateTargetAppearance() {
             target.classList.remove('image-mode');
         }
     });
-       
+
+    // Update hit effect colors using CSS variables
+    if (useImageTarget) {
+        // Orange/Braun für Image-Modus
+        document.documentElement.style.setProperty('--hit-effect-color', 'rgba(194, 103, 0, 0.8)');
+        document.documentElement.style.setProperty('--hit-effect-color-start', 'rgba(194, 103, 0, 0.6)');
+        document.documentElement.style.setProperty('--hit-effect-color-20', 'rgba(194, 103, 0, 0.7)');
+        document.documentElement.style.setProperty('--hit-effect-color-70', 'rgba(194, 103, 0, 0.3)');
+        document.documentElement.style.setProperty('--hit-effect-color-80', 'rgba(194, 103, 0, 0.0)');
+        document.documentElement.style.setProperty('--hit-effect-color-85', 'rgba(194, 103, 0, 0.1)');
+        document.documentElement.style.setProperty('--hit-effect-color-100', 'rgba(194, 103, 0, 0.2)');
+    } else {
+        // Rot für Red-Modus
+        document.documentElement.style.setProperty('--hit-effect-color', 'rgba(255, 0, 0, 0.8)');
+        document.documentElement.style.setProperty('--hit-effect-color-start', 'rgba(255, 0, 0, 0.6)');
+        document.documentElement.style.setProperty('--hit-effect-color-20', 'rgba(255, 0, 0, 0.7)');
+        document.documentElement.style.setProperty('--hit-effect-color-70', 'rgba(255, 0, 0, 0.3)');
+        document.documentElement.style.setProperty('--hit-effect-color-80', 'rgba(255, 0, 0, 0.0)');
+        document.documentElement.style.setProperty('--hit-effect-color-85', 'rgba(255, 0, 0, 0.1)');
+        document.documentElement.style.setProperty('--hit-effect-color-100', 'rgba(255, 0, 0, 0.2)');
+    }
+
     toggleTargetBtn.textContent = useImageTarget ? "Switch to Red" : "Switch to Image";
 }
 
@@ -757,6 +877,9 @@ async function initGame() {
   updateSoundStatus();
   updateSoundButtons();
   createAudioContext();
+  initHitEffectPool();
+  updateTargetAppearance();
+  updateHitEffectButton(); // Button-Text initialisieren
 }
 
 initGame();

@@ -25,7 +25,7 @@
 
   <div id="sound-controls">
     <div>
-      <h3>Sound Settings</h3>
+      <h3>Sound Settings / Target Apperance</h3>
       <div id="sound-upload-container">
         <div class="sound-selector">
           <button class="sound-option" data-sound="classic">Classic</button>
@@ -34,10 +34,14 @@
           <button class="sound-option" data-sound="laser">Laser</button>
           <button class="sound-option" data-sound="custom">Custom</button>
         </div>
-        <input type="file" accept="audio/*" style="margin: 3px;">
-        <button id="reset-sound">Reset Sound</button>
+        <label for="soundUploadBtn"  class="miniButton"> 
+        <input type="file" accept="audio/*" style="display: none;" id="soundUploadBtn">
+        Upload custom sound (>1sek)
+        </label>  
+        <span id="file-name">No sound uploaded</span>
+        <button id="reset-sound" class="miniButton" >Reset Sound</button>
 
-        <button id="toggle-target">Switch to Image</button>
+        <button id="toggle-target" class="miniButton">Switch to Image</button>
       
       </div>
     </div>
@@ -47,6 +51,10 @@
       <input type="range" id="sound-volume" min="0" max="1" step="0.1" value="0.5">
       <div id="volume-value">50%</div>
       <div id="sound-status" class="active">Sound: ON</div>
+      <h3 class="hit-effects-title">Hit Effects</h3>
+     <button id="toggle-hit-effect" class="miniButton">
+      Switch to Pulse
+    </button>
     </div>
   </div>
   

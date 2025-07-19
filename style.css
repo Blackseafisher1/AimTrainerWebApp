@@ -1,3 +1,14 @@
+    :root {
+  /* Standardwerte für Rot-Modus */
+  --hit-effect-color: rgba(255, 0, 0, 0.73);
+  --hit-effect-color-start: rgba(255, 0, 0, 0.3);
+  --hit-effect-color-20: rgba(255, 0, 0, 0.7);
+  --hit-effect-color-70: rgba(255, 0, 0, 0.3);
+  --hit-effect-color-80: rgba(255, 0, 0, 0.0);
+  --hit-effect-color-85: rgba(255, 0, 0, 0.1);
+  --hit-effect-color-100: rgba(255, 0, 0, 0.2);
+}
+ 
  body {
       margin: 0;
      
@@ -114,7 +125,7 @@
       .target {
       -webkit-touch-callout: none;
       backface-visibility: hidden;
-       will-change: transform, opacity;/* gpu-acceleration */
+      will-change: transform; /* GPU acceleration */
       position: absolute;
       border-radius: 50%;
       cursor: crosshair;
@@ -127,7 +138,7 @@
       -moz-osx-font-smoothing: grayscale;
       outline: 1px solid transparent; /* Forces GPU rendering in some browsers */
       transform: translateZ(0); /* GPU acceleration */
-      filter: blur(0.5px); /* Subtle blur to soften edges */
+      filter: blur(0.5px); /* Subtle blur to soften edges (adjust as needed) */
     }
 
     /* ADDED: Red mode styles */
@@ -342,32 +353,132 @@
       50% { transform: scale(1.05); }
       100% { transform: scale(1); }
     }
-    
-    .hit-effect {
+
+ 
+
+.hitEffect {
+  position: absolute;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: var(--hit-effect-color);
+  pointer-events: none;
+  z-index: 1000;
+  border: 0px solid transparent;
+  opacity: 1;
+  transform: translateY(-100px) scale(0.3);
+  filter: blur(2px);
+  will-change: transform, opacity, filter;
+  animation: hitEffect 0.3s ease-out forwards;
+}
+
+@keyframes hitEffect {
+  0% {
+    transform: translateY(-300px) scale(0.3);
+    background: var(--hit-effect-color-start);
+    filter: blur(50px);
+    border: 0px;
+  }
+  20% {
+    transform: translateY(0) scale(0.4);
+    background: var(--hit-effect-color-20);
+    border: 0px;
+    filter: blur(50px);
+  }
+  
+  40% {
+    transform: translateY(0) scale(0.7);
+    background: var(--hit-effect-color-70);
+    border: 0px;
+    filter: blur(10px);
+  }
+  50% {
+    transform: translateY(0) scale(1);
+    background: var(--hit-effect-color-70);
+    border: 5px solid rgba(255, 255, 255);
+    filter: blur(10px);
+  }
+   70% {
+    transform: translateY(0) scale(1.5);
+    background: var(--hit-effect-color-80);
+    border: 5px solid rgba(255, 255, 255);
+    filter: blur(15px);
+  }
+  80% {
+    transform: translateY(0) scale(2.0);
+    background: var(--hit-effect-color-80);
+    border: 15px solid rgba(255, 255, 255, 0.726);
+    filter: blur(20px);
+  }
+  85% {
+    transform: translateY(0) scale(3.0);
+    background: var(--hit-effect-color-85);
+   border: 5px solid rgba(255, 255, 255, 0.4);
+    filter: blur(25px);
+  }
+  90% {
+    transform: translateY(0) scale(4.0);
+    background: var(--hit-effect-color-85);
+   border: 5px solid rgba(255, 255, 255, 0.1);
+    filter: blur(25px);
+  }
+  95% {
+    transform: translateY(0) scale(0.4);
+    background: var(--hit-effect-color-100);
+     border: 0px;
+    filter: blur(10px);
+  }
+  98% {
+    transform: translateY(0) scale(0.1);
+    background: var(--hit-effect-color-100);
+     border: 0px;
+    filter: blur(10px);
+  }
+  100% {
+    transform: translateY(0) scale(0.0);
+    background: var(--hit-effect-color-100);
+     border: 0px;
+    filter: blur(5px);
+  }
+}
+ .hitEffect2 {
       position: absolute;
       border-radius: 50%;
       pointer-events: none;
-      z-index: 5;
-      animation: hitEffect 0.6s forwards;
-     
-      
+      z-index: 1000;
+      animation: hitEffect2 0.3s ease-out forwards;
+       will-change:opacity, filter;
+
     }
     
-    @keyframes hitEffect {
+    @keyframes hitEffect2 {
       0% { 
-        transform: scale(0.5);
+        transform: scale(0.1);
         opacity: 1;
-        border: 15px solid rgba(255, 255, 255, 0.8);
+        border: 30px solid rgba(255, 255, 255, 0.8);
+        filter: blur(2px);
         
       }
       100% { 
-        transform: scale(2);
-        opacity: 0;
-        border: 5px solid rgba(255, 255, 255, 0);
+        transform: scale(2.5);
+        opacity: 0.8;
+        border: 15px solid rgba(255, 255, 255, 0);
+        filter: blur(10px);
+
    
       }
     }
-    
+  /* SAFE version that won't break functionality */
+#sound-controls h3.hit-effects-title {
+  margin: 20px 0 2px 0;
+  display: block; /* Ensures proper margin application */
+  position: relative; /* Contains the element */
+  z-index: 1; /* Keeps it above other elements */
+}
+
+
+
+
     /* Sound controls styling */
     #sound-controls {
       display: flex;
@@ -461,13 +572,18 @@
 
 
     }
-    
+
     #sound-controls > div {
       display: flex;
       flex-direction: column;
       align-items: center;
       background: rgba(30, 30, 30, 0.8);
-      padding: 15px;
+     
+     padding-left: 15px;
+     padding-right: 15px;
+     padding-bottom: 5px;
+     padding-top: 5px;
+
       border-radius: 10px;
       max-width: 400px;
       box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
@@ -574,6 +690,25 @@
   box-shadow: 0 0 8px #ffd166;
 }
 
+.miniButton {
+  background-color: #1c1c1c;
+  color: #eee;
+  border: 1px solid #333;
+  border-radius: 5px;
+  font-size: 13px;
+  padding: 3px 7px;
+  box-shadow: 0 0 2px #444;
+  margin-top: 4px;
+  transition: box-shadow 0.2s, border-color 0.2s;
+
+
+}
+
+.miniButton:hover{
+ box-shadow: 0 0 5px #ffcc00;
+  border-color: #ffcc00;
+  cursor: pointer;
+}
 
 
 
@@ -679,6 +814,17 @@
     }
     
     @media (max-width: 768px) {
+     .hitEffect {
+ 
+  width: 80px !important;
+  height: 80px !important;
+  
+ 
+}
+    
+
+
+
       /* Tablet-specific adjustments */
       .target {
         border-width: 12px;
