@@ -270,10 +270,10 @@ async function playHitSound() {
 
 function createHitEffect(x, y, size) {
   // Mindestgröße festlegen
-  const minSize = 80;
+  const minSize = 0;
   
   // Effektgröße berechnen (mindestens minSize)
-  const effectSize = Math.max(minSize, size * 0.9);
+  const effectSize = Math.max(minSize, size * 0.8);
   
   let effect = hitEffectPool.find(e => e.style.display === 'none');
   
@@ -340,6 +340,8 @@ document.getElementById('toggle-hit-effect').addEventListener('click', toggleHit
 
 
 const roundTime = 60;
+
+
 let timeLeft = roundTime;
 let score = 0;
 let missClicks = 0;

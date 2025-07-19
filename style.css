@@ -450,7 +450,7 @@
   z-index: 1000;
   animation: hitEffect2 0.3s ease-out forwards;
   will-change: transform, opacity; /* Nur notwendige Eigenschaften */
-  border: 20px double rgba(255, 255, 255);
+  border: 15px double rgba(255, 255, 255);
   /* GPU-Optimierungen: */
   transform: translateZ(0);
   backface-visibility: hidden;
@@ -465,15 +465,15 @@
     border: 15px double var(--hit-effect2);
     filter: none; /* Filter entfernen falls vorhanden */
   }
-  80% {
+  60% {
     transform: scale(2) translateZ(0); /* GPU-Beschleunigung */
      opacity: 0.1 ;
     border: 15px double var(--hit-effect2);
     filter: none; /* Filter entfernen falls vorhanden */
   }
     100% {
-    transform: scale(0.1) translateZ(0); /* GPU-Beschleunigung */
-     opacity:0.3 ;
+    transform: scale(0.0) translateZ(0); /* GPU-Beschleunigung */
+     opacity:0.4 ;
     border: 15px double var(--hit-effect2);
     filter: none; /* Filter entfernen falls vorhanden */
   }
@@ -930,7 +930,7 @@
   z-index: 1000;
   animation: hitEffect2 0.3s ease-out forwards;
   will-change: transform, opacity; /* Nur notwendige Eigenschaften */
-  border: 15px double rgba(255, 255, 255);
+  border: 10px double rgba(255, 255, 255);
   /* GPU-Optimierungen: */
   transform: translateZ(0);
   backface-visibility: hidden;
@@ -945,15 +945,15 @@
     border: 10px double var(--hit-effect2);
     filter: none; /* Filter entfernen falls vorhanden */
   }
-  80% {
+  60% {
     transform: scale(2) translateZ(0); /* GPU-Beschleunigung */
      opacity: 0.1 ;
     border: 10px double var(--hit-effect2);
     filter: none; /* Filter entfernen falls vorhanden */
   }
     100% {
-    transform: scale(0.3) translateZ(0); /* GPU-Beschleunigung */
-     opacity:0.3 ;
+    transform: scale(0.0) translateZ(0); /* GPU-Beschleunigung */
+     opacity:0.4 ;
     border: 10px double var(--hit-effect2);
     filter: none; /* Filter entfernen falls vorhanden */
   }
