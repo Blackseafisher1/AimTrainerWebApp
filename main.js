@@ -837,6 +837,10 @@ function updateTargetAppearance() {
         document.documentElement.style.setProperty('--hit-effect-color-80', 'rgba(194, 103, 0, 0.0)');
         document.documentElement.style.setProperty('--hit-effect-color-85', 'rgba(194, 103, 0, 0.1)');
         document.documentElement.style.setProperty('--hit-effect-color-100', 'rgba(194, 103, 0, 0.2)');
+
+        document.documentElement.style.setProperty('--hit-effect2','rgb(194, 103, 0)');
+
+
     } else {
         // Rot für Red-Modus
         document.documentElement.style.setProperty('--hit-effect-color', 'rgba(255, 0, 0, 0.8)');
@@ -846,6 +850,9 @@ function updateTargetAppearance() {
         document.documentElement.style.setProperty('--hit-effect-color-80', 'rgba(255, 0, 0, 0.0)');
         document.documentElement.style.setProperty('--hit-effect-color-85', 'rgba(255, 0, 0, 0.1)');
         document.documentElement.style.setProperty('--hit-effect-color-100', 'rgba(255, 0, 0, 0.2)');
+
+         document.documentElement.style.setProperty('--hit-effect2','rgb(255, 0, 0)');
+
     }
 
     toggleTargetBtn.textContent = useImageTarget ? "Switch to Red" : "Switch to Image";
