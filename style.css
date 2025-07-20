@@ -524,6 +524,8 @@
 }
 
 
+ 
+
 
 
 
@@ -546,6 +548,15 @@
   .target.red-mode:active {
     border-width: 12px !important;
   }
+  #volumeHiteffect{
+      min-height: 300px !important;
+    }
+ #volumeHiteffect > button{
+     
+      padding:6px;
+      max-width: 33%;
+    }
+
 }
 
 @media (max-width: 600px) {
@@ -590,7 +601,8 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      background: rgba(30, 30, 30, 0.8);
+       background: #171717 !important;
+background: linear-gradient(45deg, rgba(23, 23, 23, 1) 0%, rgba(122, 122, 122, 1) 19%, rgba(148, 148, 148, 1) 54%, rgba(112, 112, 112, 1) 69%, rgba(110, 110, 110, 1) 84%, rgba(156, 156, 156, 1) 100%) !important;
      
      padding-left: 15px;
      padding-right: 15px;
@@ -602,6 +614,7 @@
       box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
       border: 1px solid #444;
       max-height: 15rem;
+    
       
     }
     
@@ -629,10 +642,7 @@
       outline: none;
        
     }
-    #volumeHiteffect{
-      background-color: rgb(122, 122, 122) !important;
-    }
-
+   
 
 
     #sound-volume::-webkit-slider-thumb {

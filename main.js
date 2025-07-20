@@ -13,7 +13,8 @@ const volumeValue = document.getElementById('volume-value');
 const soundStatus = document.getElementById('sound-status');
 const soundOptions = document.querySelectorAll('.sound-option');
 const resetSoundBtn = document.getElementById('reset-sound');
-const soundUpload = document.querySelector('#sound-upload-container input[type="file"]');
+
+const soundUpload = document.getElementById('soundUploadBtn');
 
 const toggleTargetBtn = document.getElementById('toggle-target');
 
@@ -44,6 +45,9 @@ function initHitEffectPool() {
 
 //show current sound
 const fileNameSpan = document.getElementById('file-name');
+
+
+
 
 soundUpload.addEventListener('change', function () {
 
@@ -917,6 +921,15 @@ window.addEventListener('orientationchange', () => {
 // Initialize game
 
 async function initGame() {
+
+if (isMobile) {
+  
+  // Add these lines to hide the label and file name text
+  document.querySelector('label[for="soundUploadBtn"]').style.display = 'none';
+  document.getElementById('file-name').style.display = 'none';
+}
+
+
   await createTargets();
   updateDisplays();
   updateSoundStatus();
