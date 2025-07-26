@@ -744,25 +744,26 @@ background: linear-gradient(45deg, rgba(23, 23, 23, 1) 0%, rgba(122, 122, 122, 1
   margin-top: 10px;
   box-shadow: 0px 0px 10px var(--x) !important;
   border-color: var(--x);
-  transition: all 0.35s ease-in-out;
+  transition: all 0.35s ease;
   z-index: 1000;
   overflow: visible;
+   transform: scale(1.00)  ;
+
 }
 
 #hitEffectOnOff:hover {
-  filter: brightness(90%);
-  transform: scale(1.05) translateY(2px);
-  box-shadow: 0px 0px 15px var(--x) !important;
+  filter: brightness(150%) ;
+  box-shadow: 0px 0px 12px var(--x) !important;
 }
 
 #hitEffectOnOff:active {
-  filter: brightness(80%);
-  transform: scale(1.05) translateY(6px);
-  box-shadow: 0px 0px 5px var(--x) !important;
+  filter: brightness(125%);
+  transform: scale(0.90) ;
+  box-shadow: 0px 0px 4px var(--x) !important;
 }
 
 #hitEffectOnOff::after {
-
+  transform: scale(1.00);
   content: '';
   position: absolute;
   top: 0;
@@ -771,23 +772,19 @@ background: linear-gradient(45deg, rgba(23, 23, 23, 1) 0%, rgba(122, 122, 122, 1
   height: 100%;
   background-color:rgba(0, 0, 0, 0.103);
   z-index: -1;
-  transform: translateY(3px) scale(1.2);
+ 
   filter: brightness(20%);
   opacity: 0.5;
-  transition: all 0.35s ease-in-out;
+  transition: all 0.35s ease;
   pointer-events: none;
   border-radius: inherit;
-  transform: translateY(8px)  scale(1.4);
-}
-
-#hitEffectOnOff:hover::after {
-  opacity: 1;
-  transform: translateY(4px)   scale(1.2); /* ✅ fixed syntax */
+  
+  transform:  scale(1.4) scaleY(1.2);
 }
 
 #hitEffectOnOff:active::after {
   opacity: 1;
-  transform: translateY(2px)   scale(1.1);
+  transform:   scale(1.1) scaleY(1.15);
 }
 
         
