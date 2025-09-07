@@ -91,7 +91,12 @@ let customSound = null;
 let audioContext = null; // Single audio context for the app
 
 // Check if mobile device
-const isMobile = /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+let isMobile = /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+const isSmallTouchDevice = (
+  ('ontouchstart' in window || navigator.maxTouchPoints > 0) &&
+  Math.min(window.innerWidth, window.innerHeight) <= 1024
+);
+if (isSmallTouchDevice)  isMobile = true;
 
 // Adjust target sizes based on device
 let sizes;
@@ -942,3 +947,4 @@ if (isMobile) {
 }
 
 initGame();
+
