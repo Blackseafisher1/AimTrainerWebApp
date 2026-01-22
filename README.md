@@ -1,7 +1,5 @@
 # Aim Trainer
 
-Minimal Aim Trainer web app — single-file frontend.
-
 Features
 - Click/tap targets to score
 - Three modes: Single, Multi, Sniper
