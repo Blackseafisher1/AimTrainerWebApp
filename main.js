@@ -606,14 +606,25 @@ async function createTargets() {
       handleTargetClick(e, btn, size, i); // i wird korrekt gebunden
     };
 
-    if (isMobile) {
-      btn.addEventListener('touchstart', (e) => {
-        e.preventDefault();
+    // Press = visuelles Feedback (pressed class), Release = Hit zählt
+    btn.addEventListener('pointerdown', (e) => {
+      e.preventDefault();
+      btn.classList.add('pressed');
+    });
+
+    const release = (e) => {
+      if (!btn.classList.contains('pressed')) return;
+      btn.classList.remove('pressed');
+      // Nur treffen, wenn der Finger/Zeiger beim Loslassen noch auf dem Target ist
+      const r = btn.getBoundingClientRect();
+      if (e.clientX >= r.left && e.clientX <= r.right &&
+          e.clientY >= r.top && e.clientY <= r.bottom) {
         handleClick(e);
-      });
-    } else {
-      btn.addEventListener('click', handleClick);
-    }
+      }
+    };
+    btn.addEventListener('pointerup', release);
+    btn.addEventListener('pointerleave', () => btn.classList.remove('pressed'));
+    btn.addEventListener('pointercancel', () => btn.classList.remove('pressed'));
 
     gameArea.appendChild(btn);
     targets.push(btn);
@@ -832,6 +843,14 @@ stopBtn.addEventListener('click', () => {
   if (roundStarted) {
     endRound();
   }
+});
+
+// Big play-area toggle: game area fills the screen below the slim header, controls hidden
+const fullscreenBtn = document.getElementById('fullscreen-btn');
+
+fullscreenBtn.addEventListener('click', async () => {
+  document.body.classList.toggle('big-mode');
+  await teleportAllTargets();
 });
 
 // Sound selector functionality

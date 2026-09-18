@@ -142,6 +142,7 @@
       outline: 1px solid transparent; /* Forces GPU rendering in some browsers */
       transform: translateZ(0); /* GPU acceleration */
       filter: blur(0.5px); /* Subtle blur to soften edges (adjust as needed) */
+      touch-action: manipulation;
     }
 
     /* ADDED: Red mode styles */
@@ -1169,4 +1170,83 @@ background: linear-gradient(45deg, rgba(23, 23, 23, 1) 0%, rgba(122, 122, 122, 1
       font-weight:bolder;
 
 
+    }
+
+    /* ===== Pressed state (hold-to-shoot feedback, essential on touch) ===== */
+    .target.pressed {
+      transform: scale(0.92) translateZ(0);
+      filter: brightness(1.3);
+      outline: 3px solid rgba(255, 255, 255, 0.9);
+      outline-offset: 2px;
+    }
+
+    .target.red-mode.pressed {
+      background-color: rgb(230, 60, 60) !important;
+      box-shadow: 0px 0px 30px white,
+                  inset 0px 0px 25px rgba(255, 255, 255, 0.7) !important;
+    }
+
+    .target.image-mode.pressed {
+      box-shadow: 0px 0px 20px white,
+                 inset 0px 0px 15px rgba(0, 0, 0, 0.8) !important;
+    }
+
+    .target.image-mode.pressed::before {
+      opacity: 1;
+      background-color: rgba(0, 0, 0, 0.35);
+    }
+
+    /* ===== Header (title + play-area size button) ===== */
+    #header {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    #fullscreen-btn {
+      position: absolute;
+      left: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      z-index: 10;
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0;
+      background: rgba(30, 30, 30, 0.7);
+      color: #fff;
+      border: 1px solid #555;
+      border-radius: 10px;
+      cursor: pointer;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+      transition: background 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    #fullscreen-btn:hover {
+      background: rgba(60, 60, 60, 0.85);
+      box-shadow: 0 0 10px rgba(255, 255, 255, 0.4);
+    }
+
+    #fullscreen-btn:active {
+      transform: translateY(-50%) scale(0.92);
+    }
+
+    #fullscreen-btn svg {
+      display: block;
+      pointer-events: none;
+    }
+
+    #icon-compress { display: none; }
+    body.big-mode #icon-expand { display: none; }
+    body.big-mode #icon-compress { display: block; }
+
+    /* Big play-area mode: only slim header stays on top, controls hidden */
+    body.big-mode #controls { display: none; }
+    body.big-mode h1 { margin: 6px 0; }
+    body.big-mode #game-area {
+      height: calc(100vh - 58px);
+      margin: 4px auto;
     }
