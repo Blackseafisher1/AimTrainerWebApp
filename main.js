@@ -545,6 +545,7 @@ async function moveTargetToNewPosition(targetIndex) {
   let  pos = await getNonOverlappingPosition(size, existing, radius);
   
   // Neue Position setzen
+  targets[targetIndex].classList.remove('pressed');
   targets[targetIndex].style.left = `${Math.max(0, Math.min(pos.left, gameArea.offsetWidth - size))}px`;
   targets[targetIndex].style.top = `${Math.max(0, Math.min(pos.top, gameArea.offsetHeight - size))}px`;
 }

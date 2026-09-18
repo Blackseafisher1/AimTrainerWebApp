@@ -153,15 +153,12 @@
   box-shadow: 0px 0px 50px yellow, inset 0px 0px 10px rgba(255, 255, 255, 0.3);
 }
 
-.target.red-mode:hover {
-  box-shadow: 0px 0px 10px white;
-  border: 20px double rgb(82, 6, 6);
-  background-color: rgb(131, 34, 34);
-}
-
-.target.red-mode:active {
-  background-color: rgb(66, 5, 5);
-  border: 20px double rgb(53, 0, 0);
+@media (hover: hover) {
+  .target.red-mode:hover {
+    box-shadow: 0px 0px 10px white;
+    border: 20px double rgb(82, 6, 6);
+    background-color: rgb(131, 34, 34);
+  }
 }
 
 
@@ -178,17 +175,12 @@
   overflow: hidden;
 }
 
-.target.image-mode:hover {
-  transform: scale(1.02);
-  box-shadow: 0px 0px 15px rgb(255, 255, 255), 
-             inset 0px 0px 10px rgba(0, 0, 0, 0.5);
-}
-
-.target.image-mode:active {
-  transform: scale(1.0);
-   box-shadow: 0px 0px 10px rgb(255, 255, 255), 
-             inset 0px 0px 10px rgba(0, 0, 0, 0.7);
-
+@media (hover: hover) {
+  .target.image-mode:hover {
+    transform: scale(1.02);
+    box-shadow: 0px 0px 15px rgb(255, 255, 255), 
+               inset 0px 0px 10px rgba(0, 0, 0, 0.5);
+  }
 }
 
     /* Add these rules to your existing CSS */
@@ -207,12 +199,10 @@
   transition: opacity 0.2s ease;
 }
 
-.target.image-mode:hover::before {
-  opacity: 1; /* Show on hover */
-}
-
-.target.image-mode:active::before {
-  background-color: rgba(0, 0, 0, 0.3); /* Darker on click */
+@media (hover: hover) {
+  .target.image-mode:hover::before {
+    opacity: 1; /* Show on hover */
+  }
 }
 
 
@@ -537,16 +527,10 @@
   .target.red-mode {
     border-width: 15px !important;
   }
-  .target.red-mode:active {
-    border-width: 15px !important;
-  }
 }
 
 @media (max-width: 768px) {
   .target.red-mode {
-    border-width: 12px !important;
-  }
-  .target.red-mode:active {
     border-width: 12px !important;
   }
   #volumeHiteffect{
@@ -564,16 +548,10 @@
   .target.red-mode {
     border-width: 10px !important;
   }
-  .target.red-mode:active {
-    border-width: 10px !important;
-  }
 }
 
 @media (max-width: 400px) {
   .target.red-mode {
-    border-width: 8px !important;
-  }
-  .target.red-mode:active {
     border-width: 8px !important;
   }
 }
@@ -877,19 +855,6 @@ background: linear-gradient(45deg, rgba(23, 23, 23, 1) 0%, rgba(122, 122, 122, 1
       .target {
         border-width: 15px;
         box-shadow: 0px 0px 40px yellow;
-        /* Remove hover effects on touch devices */
-        &:hover {
-          box-shadow: 0px 0px 40px yellow;
-          border: 15px solid rgb(189, 0, 0);
-          background-color: red;
-        }
-      }
-      
-      /* Make active state more visible on touch */
-      .target:active {
-        background-color: rgb(66, 5, 5);
-        border: 15px dashed rgb(53, 0, 0);
-        box-shadow: 0px 0px 60px white;
       }
     }
     
@@ -1039,10 +1004,6 @@ background: linear-gradient(45deg, rgba(23, 23, 23, 1) 0%, rgba(122, 122, 122, 1
         box-shadow: 0px 0px 30px yellow;
       }
       
-      .target:active {
-        border-width: 12px;
-      }
-      
       /* Adjust target sizes for better touch accuracy */
     
     }
@@ -1088,10 +1049,6 @@ background: linear-gradient(45deg, rgba(23, 23, 23, 1) 0%, rgba(122, 122, 122, 1
         border-width: 10px;
         box-shadow: 0px 0px 25px yellow;
       }
-      
-      .target:active {
-        border-width: 10px;
-      }
       #info{
         max-height:60rem;
       }
@@ -1116,10 +1073,6 @@ background: linear-gradient(45deg, rgba(23, 23, 23, 1) 0%, rgba(122, 122, 122, 1
         min-width: 40px;
         min-height: 40px;
       }
-      
-      .target:active {
-        border-width: 8px;
-      }
 
       .sound-option {
         padding: 8px 10px;
@@ -1143,15 +1096,9 @@ background: linear-gradient(45deg, rgba(23, 23, 23, 1) 0%, rgba(122, 122, 122, 1
       
     }
     
-    /* Detect touch devices and adjust hover behavior */
-    @media (hover: none) {
-      .target:hover {
-        /* Disable hover effects completely on touch devices */
-        box-shadow: 0px 0px 50px yellow;
-        border: 20px solid rgb(189, 0, 0);
-        background-color: red;
-      }
-    }
+    /* Hover/active styles for targets are gated behind @media (hover: hover).
+       On touch devices .pressed (set via pointer events) is the only
+       press/hover feedback, so moved targets never look stuck. */
     #NAME{
       position: absolute;
       left: 80%;
