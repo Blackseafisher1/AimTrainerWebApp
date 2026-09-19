@@ -627,6 +627,10 @@ async function createTargets() {
     btn.addEventListener('pointerleave', () => btn.classList.remove('pressed'));
     btn.addEventListener('pointercancel', () => btn.classList.remove('pressed'));
 
+    // preventDefault auf pointerdown unterdrückt NICHT den nachfolgenden
+    // Click-Event -> würde als Missclick auf gameArea zählen. Schlucken.
+    btn.addEventListener('click', (e) => e.stopPropagation());
+
     gameArea.appendChild(btn);
     targets.push(btn);
   }
@@ -653,16 +657,16 @@ function handleTargetClick(e, btn, size, index) {
   moveTargetToNewPosition(index).then(() => {
     if (!roundStarted) {
       startRound();
-    } else {
-      score++;
-      totalShots++;
-      combo++;
-      const now = Date.now();
-      if (lastHitTime > 0) {
-        totalReactionTime += (now - lastHitTime) / 1000;
-      }
-      lastHitTime = now;
     }
+    // Erster Treffer startet die Runde UND zaehlt als Hit
+    score++;
+    totalShots++;
+    combo++;
+    const now = Date.now();
+    if (lastHitTime > 0) {
+      totalReactionTime += (now - lastHitTime) / 1000;
+    }
+    lastHitTime = now;
     updateDisplays();
   });
 }
