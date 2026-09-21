@@ -2,18 +2,13 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-
   <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=no">
   <meta name="apple-mobile-web-app-capable" content="yes">
-      <link rel="stylesheet" href="style.css">
-
-  
+  <link rel="stylesheet" href="style.css">
   <title>Aim Trainer</title>
-
 </head>
 <body>
-<span id="NAME">by Ege             |             @KARADENIZ,
-                                                     EGE™ </span>
+
 <div id="header">
   <button id="fullscreen-btn" aria-label="Toggle big play area" title="Big play area">
     <svg id="icon-expand" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -30,19 +25,54 @@
     </svg>
   </button>
   <h1 data-text="Aim Trainer">Aim Trainer</h1>
+  <span id="NAME">by Ege | @KARADENIZ, EGE&trade;</span>
 </div>
 
 <div id="game-area"></div>
 
 <div id="controls">
-  <button id="size-btn">Change Target Size</button>
-  <button id="mode-btn">Switch Mode</button>
-  <button id="stop-btn">Stop Round</button>
+  <div id="toolbar">
+    <select id="mode-select" aria-label="Game mode">
+      <option value="single">Single</option>
+      <option value="multi">Multi</option>
+      <option value="sniper">Sniper</option>
+    </select>
+    <button id="size-btn" class="btn">Target Size</button>
+    <button id="stop-btn" class="btn">Stop Round</button>
+  </div>
 
-  <div id="sound-controls">
-    <div>
-      <h3>Sound Settings / Target Apperance</h3>
-      <div id="sound-upload-container">
+  <div id="info">
+    <div class="chip" id="time-item">
+      <div class="chip-label">Time</div><span id="time">60</span>
+    </div>
+    <div class="chip">
+      <div class="chip-label">Score</div><span id="score">0</span>
+    </div>
+    <div class="chip">
+      <div class="chip-label">Miss</div><span id="missclicks">0</span>
+    </div>
+    <div class="chip" id="best-score">
+      <div class="chip-label">Best</div><span id="best-score-value">0</span>
+    </div>
+    <div class="chip">
+      <div class="chip-label">Mode</div><span id="mode-display">Single</span>
+    </div>
+    <div class="chip">
+      <div class="chip-label">Accuracy</div><span id="accuracy">0%</span>
+    </div>
+    <div class="chip">
+      <div class="chip-label">Combo</div><span id="combo">0</span>
+    </div>
+    <div class="chip">
+      <div class="chip-label">Avg Time</div><span id="avg-time">0.00s</span>
+    </div>
+  </div>
+
+  <details id="settings">
+    <summary>Settings</summary>
+    <div id="settings-body">
+      <div class="settings-col">
+        <h3>Sound</h3>
         <div class="sound-selector">
           <button class="sound-option" data-sound="classic">Classic</button>
           <button class="sound-option" data-sound="beep">Beep</button>
@@ -50,59 +80,24 @@
           <button class="sound-option" data-sound="laser">Laser</button>
           <button class="sound-option" data-sound="custom">Custom</button>
         </div>
-        <label for="soundUploadBtn"  class="miniButton"> 
-       <input type="file" id="soundUploadBtn" accept="audio/*" style="display: none;">
-        Upload custom sound (>1sek)
-        </label>  
+        <label for="soundUploadBtn" class="miniButton">
+          <input type="file" id="soundUploadBtn" accept="audio/*" style="display: none;">
+          Upload custom sound (&gt;1sek)
+        </label>
         <span id="file-name">No sound uploaded</span>
-        <button id="reset-sound" class="miniButton" >Reset Sound</button>
-
+        <button id="reset-sound" class="miniButton">Reset Sound</button>
+      </div>
+      <div class="settings-col">
+        <h3>Target &amp; Effects</h3>
         <button id="toggle-target" class="miniButton">Switch to Image</button>
-      
+        <input type="range" id="sound-volume" min="0" max="1" step="0.1" value="0.5">
+        <div id="volume-value">50%</div>
+        <div id="sound-status" class="active">Sound: ON</div>
+        <button id="toggle-hit-effect" class="miniButton">Switch to Pulse</button>
+        <button id="hitEffectOnOff" class="miniButton">Turn hiteffects OFF</button>
       </div>
     </div>
-  
-    <div id="volumeHiteffect">
-      <h3>Volume Control</h3>
-      <input type="range" id="sound-volume" min="0" max="1" step="0.1" value="0.5">
-      <div id="volume-value">50%</div>
-      <div id="sound-status" class="active">Sound: ON</div>
-      <h3 class="hit-effects-title">Hit Effects</h3>
-     <button id="toggle-hit-effect" class="miniButton">
-      Switch to Pulse
-    </button>
-    <button id ="hitEffectOnOff" class="miniButton">
-      Turn hiteffects OFF
-    </button>
-    </div>
-  </div>
-  
-  <div id="info">
-    <div class="info-item" id="time-item">
-      Time Left: <span id="time">60</span>
-    </div>
-    <div class="info-item">
-      Score: <span id="score">0</span>
-    </div>
-    <div class="info-item">
-      Missclicks: <span id="missclicks">0</span>
-    </div>
-    <div class="info-item" id="best-score">
-       <span id="best-score-value">0</span>
-    </div>
-    <div class="info-item">
-      Mode: <span id="mode-display" >Single</span>
-    </div>
-    <div class="info-item">
-      Accuracy: <span id="accuracy">0%</span>
-    </div>
-    <div class="info-item">
-      Combo: <span id="combo">0</span>
-    </div>
-    <div class="info-item">
-      Avg Time: <span id="avg-time">0.00s</span>
-    </div>
-  </div> 
+  </details>
 </div>
 
 <script src="main.js"> </script>

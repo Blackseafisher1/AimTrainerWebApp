@@ -2,10 +2,9 @@ const gameArea = document.getElementById('game-area');
 const timeDisplay = document.getElementById('time');
 const scoreDisplay = document.getElementById('score');
 const missclicksDisplay = document.getElementById('missclicks');
-const bestScoreDisplay = document.getElementById('best-score');
 const sizeBtn = document.getElementById('size-btn');
 const stopBtn = document.getElementById('stop-btn');
-const modeBtn = document.getElementById('mode-btn');
+const modeSelect = document.getElementById('mode-select');
 const modeDisplay = document.getElementById('mode-display');
 const timeItem = document.getElementById('time-item');
 const soundVolume = document.getElementById('sound-volume');
@@ -428,55 +427,41 @@ const settings = {
 
 
 
-// Ersetze die bestehende updateDisplays-Funktion (Zeile ~190)
+const MODE_NAMES = { single: 'Single', multi: 'Multi', sniper: 'Sniper' };
+
 function updateDisplays() {
   scoreDisplay.textContent = score;
   missclicksDisplay.textContent = missClicks;
   timeDisplay.textContent = timeLeft;
-  modeDisplay.textContent = 
-    mode === 'single' ? 'Single' : 
-    mode === 'multi' ? 'Multi' : 
-    'Sniper';
-  
-  bestScoreDisplay.innerHTML = `<span id="best-score-value">High score: ${bestScores[mode]}</span>`;
-  
-  // NEUE BERECHNUNGEN HINZUGEFÜGT
-  accuracy = totalShots > 0 ? Math.round((score / totalShots) * 100) : 0;
-  document.getElementById('accuracy').textContent = accuracy + '%';
-  
-  document.getElementById('combo').textContent = combo;
-  
-  avgReactionTime = score > 0 ? (totalReactionTime / score) : 0;
-  document.getElementById('avg-time').textContent = avgReactionTime.toFixed(2) + 's';
-}
+  modeDisplay.textContent = MODE_NAMES[mode] || mode;
 
+  document.getElementById('best-score-value').textContent = bestScores[mode];
 
-
-  
   // Calculate and update accuracy
   accuracy = totalShots > 0 ? Math.round((score / totalShots) * 100) : 0;
   document.getElementById('accuracy').textContent = accuracy + '%';
-  
+
   // Update combo
   document.getElementById('combo').textContent = combo;
-  
+
   // Update average reaction time
   avgReactionTime = score > 0 ? (totalReactionTime / score) : 0;
   document.getElementById('avg-time').textContent = avgReactionTime.toFixed(2) + 's';
-  
-  // Add pulse animation to score when it changes
+
+  // Add pulse animation to score chip when it changes
   scoreDisplay.parentElement.classList.remove('pulse');
   void scoreDisplay.parentElement.offsetWidth;
   scoreDisplay.parentElement.classList.add('pulse');
-  
-  // Flash time when below 10 seconds
-  if (timeLeft < 11) {
+
+  // Flash time chip when below 10 seconds (only during a round)
+  if (roundStarted && timeLeft < 11) {
     timeItem.style.animation = 'pulse 0.8s infinite';
     timeItem.style.background = 'rgba(255, 50, 50, 0.3)';
   } else {
     timeItem.style.animation = '';
     timeItem.style.background = '';
   }
+}
 
 //heavy calc in worker (setup)
 // Web Worker Setup
@@ -819,22 +804,13 @@ sizeBtn.addEventListener('click', async () => {
 
 
 
-modeBtn.addEventListener('click', async () => {
+modeSelect.addEventListener('change', async () => {
   if (roundStarted) {
     endRound();
- } 
-  if (mode === 'single') {
-    mode = 'multi';
-  } else if (mode === 'multi') {
-    mode = 'sniper';
-  } else {
-    mode = 'single';
   }
-
+  mode = modeSelect.value;
   await createTargets();
   updateDisplays();
-  
-
 });
 
 stopBtn.addEventListener('click', () => {
@@ -956,6 +932,7 @@ if (isMobile) {
   updateDisplays();
   updateSoundStatus();
   updateSoundButtons();
+  modeSelect.value = mode;
   createAudioContext();
   initHitEffectPool();
   updateTargetAppearance();
