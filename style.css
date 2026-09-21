@@ -550,6 +550,31 @@ body[data-theme="light"] #NAME {
   color: var(--muted);
 }
 
+.slider-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+}
+
+.slider-row input[type="range"] {
+  flex: 1;
+  width: auto;
+  margin: 8px 0;
+}
+
+.slider-row input[type="number"] {
+  width: 58px;
+  padding: 4px 4px;
+  background: var(--panel-2);
+  color: var(--text);
+  border: 1px solid var(--border-soft);
+  border-radius: 5px;
+  font-size: 0.85rem;
+  font-weight: bold;
+  text-align: center;
+}
+
 #target-color {
   width: 42px;
   height: 28px;
@@ -615,7 +640,7 @@ body[data-theme="light"] #NAME {
 
 /* Volume slider */
 #sound-volume,
-.mode-setting input[type="range"] {
+.slider-row input[type="range"] {
   width: 80%;
   margin: 8px 0;
   appearance: none;
@@ -627,7 +652,7 @@ body[data-theme="light"] #NAME {
 }
 
 #sound-volume::-webkit-slider-thumb,
-.mode-setting input[type="range"]::-webkit-slider-thumb {
+.slider-row input[type="range"]::-webkit-slider-thumb {
   -webkit-appearance: none;
   width: 20px;
   height: 20px;

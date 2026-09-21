@@ -1079,43 +1079,52 @@ themeBtn.addEventListener('click', () => {
 
 // Mode-spezifische Einstellungen (nur bei Bounce/Chaos sichtbar)
 const ballSpeedInput = document.getElementById('ball-speed');
-const ballSpeedValue = document.getElementById('ball-speed-value');
+const ballSpeedNumber = document.getElementById('ball-speed-number');
 const ballCountInput = document.getElementById('ball-count');
-const ballCountValue = document.getElementById('ball-count-value');
-const bounceSettings = document.getElementById('bounce-settings');
+const ballCountNumber = document.getElementById('ball-count-number');
+const speedSettings = document.getElementById('speed-settings');
 const chaosSettings = document.getElementById('chaos-settings');
 const modeSettingsCol = document.getElementById('mode-settings-col');
 
 function updateModeSettingsVisibility() {
-  const showBounce = mode === 'bounce';
-  const showChaos = mode === 'chaos';
-  bounceSettings.style.display = showBounce ? '' : 'none';
-  chaosSettings.style.display = showChaos ? '' : 'none';
-  modeSettingsCol.style.display = (showBounce || showChaos) ? '' : 'none';
+  const moving = (mode === 'bounce' || mode === 'chaos');
+  speedSettings.style.display = moving ? '' : 'none';
+  chaosSettings.style.display = (mode === 'chaos') ? '' : 'none';
+  modeSettingsCol.style.display = moving ? '' : 'none';
 }
 
-ballSpeedInput.addEventListener('input', () => {
-  const f = parseFloat(ballSpeedInput.value);
+function setBallSpeed(f, scaleLive = true) {
+  if (!isFinite(f)) f = ballSpeedFactor;
+  f = Math.min(3, Math.max(0.5, f));
   const ratio = f / (ballSpeedFactor || 1);
   ballSpeedFactor = f;
   // Laufende Baelle live mit_skalieren
-  ballState.forEach(b => { b.vx *= ratio; b.vy *= ratio; });
-  ballSpeedValue.textContent = f.toFixed(1) + 'x';
-  localStorage.setItem('aimTrainerBallSpeed', f);
-});
-
-ballCountInput.addEventListener('input', () => {
-  ballCountValue.textContent = ballCountInput.value;
-});
-
-ballCountInput.addEventListener('change', async () => {
-  chaosBallCount = parseInt(ballCountInput.value, 10);
-  ballCountValue.textContent = chaosBallCount;
-  localStorage.setItem('aimTrainerChaosCount', chaosBallCount);
-  if (mode === 'chaos') {
-    await createTargets();
+  if (scaleLive) {
+    ballState.forEach(b => { b.vx *= ratio; b.vy *= ratio; });
   }
-});
+  ballSpeedInput.value = f;
+  ballSpeedNumber.value = f;
+  localStorage.setItem('aimTrainerBallSpeed', f);
+}
+
+ballSpeedInput.addEventListener('input', () => setBallSpeed(parseFloat(ballSpeedInput.value)));
+ballSpeedNumber.addEventListener('change', () => setBallSpeed(parseFloat(ballSpeedNumber.value)));
+
+function setBallCount(n) {
+  n = Math.round(n);
+  if (!Number.isFinite(n)) n = chaosBallCount;
+  n = Math.min(8, Math.max(2, n));
+  chaosBallCount = n;
+  ballCountInput.value = n;
+  ballCountNumber.value = n;
+  localStorage.setItem('aimTrainerChaosCount', n);
+  if (mode === 'chaos') {
+    createTargets();
+  }
+}
+
+ballCountInput.addEventListener('change', () => setBallCount(parseInt(ballCountInput.value, 10)));
+ballCountNumber.addEventListener('change', () => setBallCount(parseFloat(ballCountNumber.value)));
 
 
 function updateTargetAppearance() {
@@ -1190,9 +1199,9 @@ if (isMobile) {
   targetColorInput.value = targetColor;
   applyTheme();
   ballSpeedInput.value = ballSpeedFactor;
-  ballSpeedValue.textContent = ballSpeedFactor.toFixed(1) + 'x';
+  ballSpeedNumber.value = ballSpeedFactor;
   ballCountInput.value = chaosBallCount;
-  ballCountValue.textContent = chaosBallCount;
+  ballCountNumber.value = chaosBallCount;
   updateModeSettingsVisibility();
   createAudioContext();
   initHitEffectPool();
