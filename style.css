@@ -449,6 +449,24 @@ body.big-mode #icon-compress { display: block; }
   text-shadow: 0 0 5px rgba(255, 209, 102, 0.5);
 }
 
+.color-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+#target-color {
+  width: 42px;
+  height: 28px;
+  padding: 0;
+  border: 1px solid var(--border-soft);
+  border-radius: 6px;
+  background: none;
+  cursor: pointer;
+}
+
 /* Sound selector */
 .sound-selector {
   display: flex;

@@ -854,6 +854,42 @@ if (localStorage.getItem('useImageTarget') === 'true') {
     useImageTarget = true;
 }
 
+// Adjustable target color (red mode)
+let targetColor = localStorage.getItem('aimTrainerTargetColor') || '#ff0000';
+const targetColorInput = document.getElementById('target-color');
+
+function hexToRgb(hex) {
+  let h = hex.replace('#', '');
+  if (h.length === 3) h = h.split('').map(c => c + c).join('');
+  const n = parseInt(h, 16);
+  return { r: (n >> 16) & 255, g: (n >> 8) & 255, b: n & 255 };
+}
+
+function applyTargetColor() {
+  const { r, g, b } = hexToRgb(targetColor);
+  const root = document.documentElement.style;
+  root.setProperty('--target-color', targetColor);
+  root.setProperty('--target-border', `rgb(${Math.round(r * 0.72)}, ${Math.round(g * 0.72)}, ${Math.round(b * 0.72)})`);
+
+  // Hit effects folgen der Target-Farbe (nur im Red-Mode)
+  if (!useImageTarget) {
+    root.setProperty('--hit-effect-color', `rgba(${r}, ${g}, ${b}, 0.73)`);
+    root.setProperty('--hit-effect-color-start', `rgba(${r}, ${g}, ${b}, 0.3)`);
+    root.setProperty('--hit-effect-color-20', `rgba(${r}, ${g}, ${b}, 0.7)`);
+    root.setProperty('--hit-effect-color-70', `rgba(${r}, ${g}, ${b}, 0.3)`);
+    root.setProperty('--hit-effect-color-80', `rgba(${r}, ${g}, ${b}, 0.0)`);
+    root.setProperty('--hit-effect-color-85', `rgba(${r}, ${g}, ${b}, 0.1)`);
+    root.setProperty('--hit-effect-color-100', `rgba(${r}, ${g}, ${b}, 0.2)`);
+    root.setProperty('--hit-effect2', `rgb(${r}, ${g}, ${b})`);
+  }
+}
+
+targetColorInput.addEventListener('input', () => {
+  targetColor = targetColorInput.value;
+  localStorage.setItem('aimTrainerTargetColor', targetColor);
+  applyTargetColor();
+});
+
 
 function updateTargetAppearance() {
     // Update target classes
@@ -882,17 +918,8 @@ function updateTargetAppearance() {
 
 
     } else {
-        // Rot für Red-Modus
-        document.documentElement.style.setProperty('--hit-effect-color', 'rgba(255, 0, 0, 0.8)');
-        document.documentElement.style.setProperty('--hit-effect-color-start', 'rgba(255, 0, 0, 0.6)');
-        document.documentElement.style.setProperty('--hit-effect-color-20', 'rgba(255, 0, 0, 0.7)');
-        document.documentElement.style.setProperty('--hit-effect-color-70', 'rgba(255, 0, 0, 0.3)');
-        document.documentElement.style.setProperty('--hit-effect-color-80', 'rgba(255, 0, 0, 0.0)');
-        document.documentElement.style.setProperty('--hit-effect-color-85', 'rgba(255, 0, 0, 0.1)');
-        document.documentElement.style.setProperty('--hit-effect-color-100', 'rgba(255, 0, 0, 0.2)');
-
-         document.documentElement.style.setProperty('--hit-effect2','rgb(255, 0, 0)');
-
+        // Red-Mode: Farben aus der waehlbaren Target-Farbe ableiten
+        applyTargetColor();
     }
 
     toggleTargetBtn.textContent = useImageTarget ? "Switch to Red" : "Switch to Image";
@@ -933,6 +960,7 @@ if (isMobile) {
   updateSoundStatus();
   updateSoundButtons();
   modeSelect.value = mode;
+  targetColorInput.value = targetColor;
   createAudioContext();
   initHitEffectPool();
   updateTargetAppearance();
