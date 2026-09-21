@@ -186,6 +186,75 @@ h1::after {
 body.big-mode #icon-expand { display: none; }
 body.big-mode #icon-compress { display: block; }
 
+#theme-btn {
+  position: absolute;
+  left: 60px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 10;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  background: var(--panel);
+  color: var(--text);
+  border: 1px solid var(--border-soft);
+  border-radius: 10px;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+  transition: background 0.2s ease, box-shadow 0.2s ease;
+}
+
+#theme-btn:hover {
+  background: var(--panel-2);
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.4);
+}
+
+#theme-btn:active {
+  transform: translateY(-50%) scale(0.92);
+}
+
+#theme-btn svg {
+  display: block;
+  pointer-events: none;
+}
+
+#icon-moon { display: none; }
+body[data-theme="light"] #icon-sun { display: none; }
+body[data-theme="light"] #icon-moon { display: block; }
+
+/* ===== Light theme ===== */
+body[data-theme="light"] {
+  --bg: #e9e9ee;
+  --game-bg: #f7f7f8;
+  --panel: rgba(255, 255, 255, 0.9);
+  --panel-2: #ffffff;
+  --border: #c9c9cf;
+  --border-soft: #b5b5bc;
+  --text: #1c1c1e;
+  --muted: #66666e;
+  --btn-top: #ffffff;
+  --btn-bottom: #d9d9de;
+}
+
+body[data-theme="light"] #game-area {
+  box-shadow: 0 0 30px rgba(0, 0, 0, 0.12);
+}
+
+body[data-theme="light"] h1 {
+  background: linear-gradient(to right, #333333, #0066cc, #7c3aed, #c026d3);
+  background-clip: text;
+  -webkit-background-clip: text;
+}
+
+body[data-theme="light"] #NAME {
+  background: linear-gradient(to right, #333333, #0066cc, #7c3aed, #c026d3);
+  -webkit-background-clip: text;
+  background-clip: text;
+}
+
 /* ===== Game area ===== */
 #game-area {
   position: relative;

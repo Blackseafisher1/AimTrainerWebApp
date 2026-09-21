@@ -890,6 +890,22 @@ targetColorInput.addEventListener('input', () => {
   applyTargetColor();
 });
 
+// Light/Dark mode
+const themeBtn = document.getElementById('theme-btn');
+let theme = localStorage.getItem('aimTrainerTheme') || 'dark';
+
+function applyTheme() {
+  document.body.dataset.theme = theme;
+  document.getElementById('icon-sun').style.display = theme === 'dark' ? 'block' : 'none';
+  document.getElementById('icon-moon').style.display = theme === 'dark' ? 'none' : 'block';
+}
+
+themeBtn.addEventListener('click', () => {
+  theme = (theme === 'dark') ? 'light' : 'dark';
+  localStorage.setItem('aimTrainerTheme', theme);
+  applyTheme();
+});
+
 
 function updateTargetAppearance() {
     // Update target classes
@@ -961,6 +977,7 @@ if (isMobile) {
   updateSoundButtons();
   modeSelect.value = mode;
   targetColorInput.value = targetColor;
+  applyTheme();
   createAudioContext();
   initHitEffectPool();
   updateTargetAppearance();
