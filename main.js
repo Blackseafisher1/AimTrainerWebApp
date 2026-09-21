@@ -739,8 +739,12 @@ Avg. Time: ${avgReactionTime.toFixed(2)}s`);
   updateDisplays();
 }
 
-gameArea.addEventListener('click', () => {
-  if (roundStarted) {
+// Missclicks einheitlich fuer Maus UND Touch: nur wenn der Press direkt
+// auf der leeren Flaeche startet. Keine Click-Listener mehr - der
+// synthetische Mobile-Click landet nach dem Wegteleportieren des Targets
+// auf gameArea und wuerde jeden Hit faelschlich als Missclick zaehlen.
+gameArea.addEventListener('pointerdown', (e) => {
+  if (roundStarted && e.target === gameArea) {
     missClicks++;
     totalShots++;
     combo = 0;
@@ -794,17 +798,6 @@ document.addEventListener('keydown', (e) => {
 
 
 
-
-if (isMobile) {
-  gameArea.addEventListener('touchstart', (e) => {
-    if (roundStarted && e.target === gameArea) {
-      missClicks++;
-      totalShots++;
-      combo = 0;
-      updateDisplays();
-    }
-  });
-}
 
 sizeBtn.addEventListener('click', async () => {
   currentSizeIndex = (currentSizeIndex + 1) % sizes.length;
