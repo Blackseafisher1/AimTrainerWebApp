@@ -1,4 +1,6 @@
 :root {
+  color-scheme: dark;
+
   /* Target & effect colors (red mode) */
   --target-color: red;
   --target-border: rgb(189, 0, 0);
@@ -227,6 +229,7 @@ body[data-theme="light"] #icon-moon { display: block; }
 
 /* ===== Light theme ===== */
 body[data-theme="light"] {
+  color-scheme: light;
   --bg: #e9e9ee;
   --game-bg: #f7f7f8;
   --panel: rgba(255, 255, 255, 0.9);
@@ -419,6 +422,12 @@ body[data-theme="light"] #NAME {
   box-shadow: 0 0 8px var(--accent);
 }
 
+/* Aufgeklappte Liste dunkel statt weiss */
+#mode-select option {
+  background: var(--bg);
+  color: var(--text);
+}
+
 /* ===== Info chips ===== */
 #info {
   display: flex;
@@ -531,6 +540,16 @@ body[data-theme="light"] #NAME {
   color: var(--muted);
 }
 
+.mode-setting {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  width: 100%;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
 #target-color {
   width: 42px;
   height: 28px;
@@ -595,7 +614,8 @@ body[data-theme="light"] #NAME {
 }
 
 /* Volume slider */
-#sound-volume {
+#sound-volume,
+.mode-setting input[type="range"] {
   width: 80%;
   margin: 8px 0;
   appearance: none;
@@ -606,7 +626,8 @@ body[data-theme="light"] #NAME {
   outline: none;
 }
 
-#sound-volume::-webkit-slider-thumb {
+#sound-volume::-webkit-slider-thumb,
+.mode-setting input[type="range"]::-webkit-slider-thumb {
   -webkit-appearance: none;
   width: 20px;
   height: 20px;

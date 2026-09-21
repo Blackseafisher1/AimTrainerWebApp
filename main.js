@@ -428,8 +428,19 @@ const settings = {
   multi: { count: 3, radius: isMobile ? 200 : 350 },
   sniper: { count: 2, radius: 'full' },
   bounce: { count: 1, radius: 'full', moving: true },
-  chaos: { count: 3, radius: isMobile ? 200 : 350, moving: true, collisions: true }
+  chaos: { radius: isMobile ? 200 : 350, moving: true, collisions: true }
 };
+
+// Einstellungen fuer Bounce/Chaos (persistiert)
+let ballSpeedFactor = parseFloat(localStorage.getItem('aimTrainerBallSpeed'));
+if (!isFinite(ballSpeedFactor) || ballSpeedFactor <= 0) ballSpeedFactor = 1;
+
+let chaosBallCount = parseInt(localStorage.getItem('aimTrainerChaosCount'), 10);
+if (!Number.isInteger(chaosBallCount) || chaosBallCount < 2 || chaosBallCount > 8) chaosBallCount = 3;
+
+function modeTargetCount() {
+  return mode === 'chaos' ? chaosBallCount : settings[mode].count;
+}
 
 // ===== Bewegte Targets (Bounce/Chaos) =====
 // Position lebt in ballState und wird per transform (GPU) gesetzt,
@@ -444,7 +455,7 @@ function isMovingMode() {
 
 function ballSpeed() {
   const base = Math.min(gameArea.clientWidth, gameArea.clientHeight);
-  return base * (mode === 'chaos' ? 0.22 : 0.30);
+  return base * (mode === 'chaos' ? 0.22 : 0.30) * ballSpeedFactor;
 }
 
 function randomVelocity() {
@@ -715,7 +726,7 @@ async function createTargets() {
   });
   targets = [];
 
-  const count = settings[mode].count;
+  const count = modeTargetCount();
   const size = sizes[currentSizeIndex];
 
   // Neue Targets erstellen
@@ -968,6 +979,7 @@ modeSelect.addEventListener('change', async () => {
     endRound();
   }
   mode = modeSelect.value;
+  updateModeSettingsVisibility();
   await createTargets();
   updateDisplays();
 });
@@ -1065,6 +1077,46 @@ themeBtn.addEventListener('click', () => {
   applyTheme();
 });
 
+// Mode-spezifische Einstellungen (nur bei Bounce/Chaos sichtbar)
+const ballSpeedInput = document.getElementById('ball-speed');
+const ballSpeedValue = document.getElementById('ball-speed-value');
+const ballCountInput = document.getElementById('ball-count');
+const ballCountValue = document.getElementById('ball-count-value');
+const bounceSettings = document.getElementById('bounce-settings');
+const chaosSettings = document.getElementById('chaos-settings');
+const modeSettingsCol = document.getElementById('mode-settings-col');
+
+function updateModeSettingsVisibility() {
+  const showBounce = mode === 'bounce';
+  const showChaos = mode === 'chaos';
+  bounceSettings.style.display = showBounce ? '' : 'none';
+  chaosSettings.style.display = showChaos ? '' : 'none';
+  modeSettingsCol.style.display = (showBounce || showChaos) ? '' : 'none';
+}
+
+ballSpeedInput.addEventListener('input', () => {
+  const f = parseFloat(ballSpeedInput.value);
+  const ratio = f / (ballSpeedFactor || 1);
+  ballSpeedFactor = f;
+  // Laufende Baelle live mit_skalieren
+  ballState.forEach(b => { b.vx *= ratio; b.vy *= ratio; });
+  ballSpeedValue.textContent = f.toFixed(1) + 'x';
+  localStorage.setItem('aimTrainerBallSpeed', f);
+});
+
+ballCountInput.addEventListener('input', () => {
+  ballCountValue.textContent = ballCountInput.value;
+});
+
+ballCountInput.addEventListener('change', async () => {
+  chaosBallCount = parseInt(ballCountInput.value, 10);
+  ballCountValue.textContent = chaosBallCount;
+  localStorage.setItem('aimTrainerChaosCount', chaosBallCount);
+  if (mode === 'chaos') {
+    await createTargets();
+  }
+});
+
 
 function updateTargetAppearance() {
     // Update target classes
@@ -1137,6 +1189,11 @@ if (isMobile) {
   modeSelect.value = mode;
   targetColorInput.value = targetColor;
   applyTheme();
+  ballSpeedInput.value = ballSpeedFactor;
+  ballSpeedValue.textContent = ballSpeedFactor.toFixed(1) + 'x';
+  ballCountInput.value = chaosBallCount;
+  ballCountValue.textContent = chaosBallCount;
+  updateModeSettingsVisibility();
   createAudioContext();
   initHitEffectPool();
   updateTargetAppearance();
