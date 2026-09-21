@@ -400,6 +400,9 @@ if (bestScores === null){
      }
 };
 
+// Neue Modi in alten localStorage-Staenden nachpflegen
+if (typeof bestScores.bounce !== 'number') bestScores.bounce = 0;
+
 
 
 
@@ -422,12 +425,75 @@ let totalShots = 0;
 const settings = {
   single: { count: 1, radius: isMobile ? 250 : 450 },
   multi: { count: 3, radius: isMobile ? 200 : 350 },
-  sniper: { count: 2, radius: 'full' }
+  sniper: { count: 2, radius: 'full' },
+  bounce: { count: 1, radius: 'full', moving: true }
 };
 
+// ===== Bewegte Targets (Bounce/Chaos) =====
+// Position lebt in ballState und wird per transform (GPU) gesetzt,
+// nicht per left/top - das kostet kein Layout pro Frame.
+const ballState = new Map();
+let ballRafId = null;
+let ballLastTs = 0;
+
+function isMovingMode() {
+  return settings[mode].moving === true;
+}
+
+function ballSpeed() {
+  const base = Math.min(gameArea.clientWidth, gameArea.clientHeight);
+  return base * (mode === 'chaos' ? 0.22 : 0.30);
+}
+
+function randomVelocity() {
+  const sp = ballSpeed();
+  const ang = Math.random() * Math.PI * 2;
+  return { vx: Math.cos(ang) * sp, vy: Math.sin(ang) * sp };
+}
+
+function stopBallLoop() {
+  if (ballRafId !== null) {
+    cancelAnimationFrame(ballRafId);
+    ballRafId = null;
+  }
+}
+
+function startBallLoop() {
+  if (ballRafId !== null || !isMovingMode()) return;
+  ballLastTs = performance.now();
+  ballRafId = requestAnimationFrame(ballLoop);
+}
+
+function ballLoop(ts) {
+  ballRafId = requestAnimationFrame(ballLoop);
+  const dt = Math.min((ts - ballLastTs) / 1000, 0.033); // Tab-Wechsel-Spruecke dämpfen
+  ballLastTs = ts;
+  const size = sizes[currentSizeIndex];
+  const maxX = gameArea.clientWidth - size;
+  const maxY = gameArea.clientHeight - size;
+
+  for (const b of ballState.values()) {
+    b.x += b.vx * dt;
+    b.y += b.vy * dt;
+    // Abprallen an den Raendern
+    if (b.x < 0) { b.x = 0; b.vx = Math.abs(b.vx); }
+    else if (b.x > maxX) { b.x = maxX; b.vx = -Math.abs(b.vx); }
+    if (b.y < 0) { b.y = 0; b.vy = Math.abs(b.vy); }
+    else if (b.y > maxY) { b.y = maxY; b.vy = -Math.abs(b.vy); }
+  }
+
+  if (settings[mode].collisions) {
+    resolveBallCollisions(size);
+  }
+
+  for (const [btn, b] of ballState) {
+    btn.style.transform = `translate3d(${Math.round(b.x)}px, ${Math.round(b.y)}px, 0)`;
+  }
+}
 
 
-const MODE_NAMES = { single: 'Single', multi: 'Multi', sniper: 'Sniper' };
+
+const MODE_NAMES = { single: 'Single', multi: 'Multi', sniper: 'Sniper', bounce: 'Bounce' };
 
 function updateDisplays() {
   scoreDisplay.textContent = score;
@@ -516,7 +582,8 @@ async function getNonOverlappingPosition(size, existing, radius) {
 async function moveTargetToNewPosition(targetIndex) {
   const size = sizes[currentSizeIndex];
   const radius = settings[mode].radius;
-  
+  const btn = targets[targetIndex];
+
   // Existierende Positionen sammeln
   const existing = targets
     .filter((_, i) => i !== targetIndex)
@@ -528,11 +595,26 @@ async function moveTargetToNewPosition(targetIndex) {
 
   // Worker für Positionierung nutzen
   let  pos = await getNonOverlappingPosition(size, existing, radius);
-  
+
   // Neue Position setzen
-  targets[targetIndex].classList.remove('pressed');
-  targets[targetIndex].style.left = `${Math.max(0, Math.min(pos.left, gameArea.offsetWidth - size))}px`;
-  targets[targetIndex].style.top = `${Math.max(0, Math.min(pos.top, gameArea.offsetHeight - size))}px`;
+  btn.classList.remove('pressed');
+  const x = Math.max(0, Math.min(pos.left, gameArea.offsetWidth - size));
+  const y = Math.max(0, Math.min(pos.top, gameArea.offsetHeight - size));
+
+  if (isMovingMode()) {
+    // Ball: Position in ballState, zufaellige neue Richtung
+    const b = ballState.get(btn);
+    if (b) {
+      b.x = x;
+      b.y = y;
+      const v = randomVelocity();
+      b.vx = v.vx;
+      b.vy = v.vy;
+    }
+  } else {
+    btn.style.left = `${x}px`;
+    btn.style.top = `${y}px`;
+  }
 }
 
 async function teleportAllTargets() {
@@ -550,25 +632,45 @@ async function teleportAllTargets() {
     try {
       const pos = await getNonOverlappingPosition(size, lastPositions, radius, width, height);
       lastPositions.push(pos);
-      
-      // Position begrenzen
-      targets[i].style.left = Math.max(0, Math.min(pos.left, width - size)) + 'px';
-      targets[i].style.top = Math.max(0, Math.min(pos.top, height - size)) + 'px';
-      
+
+      const x = Math.max(0, Math.min(pos.left, width - size));
+      const y = Math.max(0, Math.min(pos.top, height - size));
+
+      if (isMovingMode()) {
+        targets[i].style.left = '0px';
+        targets[i].style.top = '0px';
+        const b = ballState.get(targets[i]);
+        if (b) { b.x = x; b.y = y; }
+      } else {
+        targets[i].style.left = x + 'px';
+        targets[i].style.top = y + 'px';
+      }
+
     } catch (err) {
       console.error('Position error:', err);
       const pos = await getRandomPosition(size, width, height);
       lastPositions.push(pos);
-      
-      // Position begrenzen
-      targets[i].style.left = Math.max(0, Math.min(pos.left, width - size)) + 'px';
-      targets[i].style.top = Math.max(0, Math.min(pos.top, height - size)) + 'px';
+
+      const x = Math.max(0, Math.min(pos.left, width - size));
+      const y = Math.max(0, Math.min(pos.top, height - size));
+
+      if (isMovingMode()) {
+        targets[i].style.left = '0px';
+        targets[i].style.top = '0px';
+        const b = ballState.get(targets[i]);
+        if (b) { b.x = x; b.y = y; }
+      } else {
+        targets[i].style.left = x + 'px';
+        targets[i].style.top = y + 'px';
+      }
     }
   }
 }
 
 async function createTargets() {
   // Alte Targets entfernen
+  stopBallLoop();
+  ballState.clear();
   targets.forEach(t => {
     if (t.parentNode === gameArea) {
       gameArea.removeChild(t);
@@ -583,6 +685,11 @@ async function createTargets() {
   for (let i = 0; i < count; i++) {
     const btn = document.createElement('button');
     btn.className = useImageTarget ? 'target image-mode' : 'target red-mode';
+    if (isMovingMode()) {
+      btn.classList.add('moving');
+      btn.style.left = '0px';
+      btn.style.top = '0px';
+    }
     btn.style.width = `${size}px`;
     btn.style.height = `${size}px`;
     btn.dataset.index = i; // WICHTIG: Index speichern
@@ -596,6 +703,9 @@ async function createTargets() {
     btn.addEventListener('pointerdown', (e) => {
       e.preventDefault();
       btn.classList.add('pressed');
+      // Capture: pointerup kommt immer am Button an, auch wenn der
+      // Ball unter dem Finger/Zeiger wegbewegt wird
+      try { btn.setPointerCapture(e.pointerId); } catch (err) {}
     });
 
     const release = (e) => {
@@ -622,6 +732,18 @@ async function createTargets() {
 
   await new Promise(resolve => requestAnimationFrame(resolve));
   await teleportAllTargets();
+
+  // Baelle initialisieren und Animationsloop starten
+  if (isMovingMode()) {
+    targets.forEach((btn, i) => {
+      const pos = lastPositions[i] || { left: 0, top: 0 };
+      const v = randomVelocity();
+      ballState.set(btn, { x: pos.left, y: pos.top, vx: v.vx, vy: v.vy });
+      btn.style.transform = `translate3d(${Math.round(pos.left)}px, ${Math.round(pos.top)}px, 0)`;
+    });
+    startBallLoop();
+  }
+
   updateTargetAppearance();
 }
 // handleTargetClick kann synchron bleiben

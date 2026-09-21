@@ -369,6 +369,11 @@ body[data-theme="light"] #NAME {
   background-color: rgba(0, 0, 0, 0.35);
 }
 
+/* Bewegte Targets: keine Transform-Transition (wuerde jede Frame bremsen) */
+.target.moving {
+  transition: background-color 0.2s ease;
+}
+
 /* ===== Controls (everything below the game area) ===== */
 #toolbar {
   display: flex;
