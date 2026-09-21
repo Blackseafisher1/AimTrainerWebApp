@@ -898,13 +898,46 @@ Avg. Time: ${avgReactionTime.toFixed(2)}s`);
 // auf der leeren Flaeche startet. Keine Click-Listener mehr - der
 // synthetische Mobile-Click landet nach dem Wegteleportieren des Targets
 // auf gameArea und wuerde jeden Hit faelschlich als Missclick zaehlen.
+// Drag-and-Release: Press woanders, Release ueber einem Target zaehlt
+// als Hit (der evtl. vorgezaehlte Missclick wird zurueckgenommen).
+let dragPressId = null;
+let dragMisscounted = false;
+
 gameArea.addEventListener('pointerdown', (e) => {
-  if (roundStarted && e.target === gameArea) {
+  if (e.target !== gameArea) return; // Target-Press: eigener Button-Handler
+  dragPressId = e.pointerId;
+  dragMisscounted = false;
+  if (roundStarted) {
     missClicks++;
     totalShots++;
     combo = 0;
+    dragMisscounted = true;
     updateDisplays();
   }
+});
+
+gameArea.addEventListener('pointerup', (e) => {
+  if (dragPressId !== e.pointerId) return;
+  dragPressId = null;
+
+  const el = document.elementFromPoint(e.clientX, e.clientY);
+  if (el && el.classList.contains('target')) {
+    const index = targets.indexOf(el);
+    if (index !== -1) {
+      // Vorgezaehlten Missclick dieses Gestes zuruecknehmen
+      if (dragMisscounted) {
+        missClicks = Math.max(0, missClicks - 1);
+        totalShots = Math.max(0, totalShots - 1);
+        dragMisscounted = false;
+      }
+      const size = parseInt(el.style.width);
+      handleTargetClick(e, el, size, index);
+    }
+  }
+});
+
+gameArea.addEventListener('pointercancel', () => {
+  dragPressId = null;
 });
 
 // NEU: Mausposition verfolgen
