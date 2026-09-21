@@ -402,6 +402,7 @@ if (bestScores === null){
 
 // Neue Modi in alten localStorage-Staenden nachpflegen
 if (typeof bestScores.bounce !== 'number') bestScores.bounce = 0;
+if (typeof bestScores.chaos !== 'number') bestScores.chaos = 0;
 
 
 
@@ -426,7 +427,8 @@ const settings = {
   single: { count: 1, radius: isMobile ? 250 : 450 },
   multi: { count: 3, radius: isMobile ? 200 : 350 },
   sniper: { count: 2, radius: 'full' },
-  bounce: { count: 1, radius: 'full', moving: true }
+  bounce: { count: 1, radius: 'full', moving: true },
+  chaos: { count: 3, radius: isMobile ? 200 : 350, moving: true, collisions: true }
 };
 
 // ===== Bewegte Targets (Bounce/Chaos) =====
@@ -491,9 +493,44 @@ function ballLoop(ts) {
   }
 }
 
+// Elastischer Stoss gleicher Massen: Normalanteile der Geschwindigkeit
+// werden getauscht, Baelle werden vorher auseinandergeschoben
+function resolveBallCollisions(size) {
+  const balls = [...ballState.values()];
+  for (let i = 0; i < balls.length; i++) {
+    for (let j = i + 1; j < balls.length; j++) {
+      const a = balls[i];
+      const b = balls[j];
+      const dx = b.x - a.x;
+      const dy = b.y - a.y;
+      const distSq = dx * dx + dy * dy;
+      if (distSq >= size * size || distSq === 0) continue;
+      const dist = Math.sqrt(distSq);
+      const nx = dx / dist;
+      const ny = dy / dist;
+
+      // Ueberlappung symmetrisch aufloesen
+      const overlap = (size - dist) / 2;
+      a.x -= nx * overlap;
+      a.y -= ny * overlap;
+      b.x += nx * overlap;
+      b.y += ny * overlap;
+
+      // Nur wenn sie sich annaehern
+      const dvn = (a.vx - b.vx) * nx + (a.vy - b.vy) * ny;
+      if (dvn > 0) {
+        a.vx -= dvn * nx;
+        a.vy -= dvn * ny;
+        b.vx += dvn * nx;
+        b.vy += dvn * ny;
+      }
+    }
+  }
+}
 
 
-const MODE_NAMES = { single: 'Single', multi: 'Multi', sniper: 'Sniper', bounce: 'Bounce' };
+
+const MODE_NAMES = { single: 'Single', multi: 'Multi', sniper: 'Sniper', bounce: 'Bounce', chaos: 'Chaos' };
 
 function updateDisplays() {
   scoreDisplay.textContent = score;
