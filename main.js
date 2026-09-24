@@ -1152,6 +1152,21 @@ function setBallCount(n) {
 ballCountInput.addEventListener('change', () => setBallCount(parseInt(ballCountInput.value, 10)));
 ballCountNumber.addEventListener('change', () => setBallCount(parseFloat(ballCountNumber.value)));
 
+// Schatten komplett deaktivieren (Performance-Modus fuer langsame Geraete)
+const noShadowsBtn = document.getElementById('toggle-shadows');
+let noShadows = localStorage.getItem('aimTrainerNoShadows') === 'true';
+
+function applyNoShadows() {
+  document.body.classList.toggle('no-shadows', noShadows);
+  noShadowsBtn.textContent = noShadows ? 'Shadows: OFF' : 'Shadows: ON';
+}
+
+noShadowsBtn.addEventListener('click', () => {
+  noShadows = !noShadows;
+  localStorage.setItem('aimTrainerNoShadows', noShadows);
+  applyNoShadows();
+});
+
 
 function updateTargetAppearance() {
     // Update target classes
@@ -1229,6 +1244,7 @@ if (isMobile) {
   ballCountInput.value = chaosBallCount;
   ballCountNumber.value = chaosBallCount;
   updateModeSettingsVisibility();
+  applyNoShadows();
   createAudioContext();
   initHitEffectPool();
   updateTargetAppearance();

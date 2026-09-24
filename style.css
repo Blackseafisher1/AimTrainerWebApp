@@ -277,7 +277,6 @@ body[data-theme="light"] #NAME {
   -webkit-touch-callout: none;
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
-  will-change: transform;
   position: absolute;
   border-radius: 50%;
   cursor: crosshair;
@@ -297,7 +296,7 @@ body[data-theme="light"] #NAME {
 .target.red-mode {
   background-color: var(--target-color);
   border: 20px solid var(--target-border);
-  box-shadow: 0px 0px 50px yellow, inset 0px 0px 10px rgba(255, 255, 255, 0.3);
+  box-shadow: 0px 0px 24px yellow, inset 0px 0px 8px rgba(255, 255, 255, 0.3);
 }
 
 @media (hover: hover) {
@@ -311,8 +310,8 @@ body[data-theme="light"] #NAME {
 .target.image-mode {
   background-color: transparent;
   border: none !important;
-  box-shadow: 0px 0px 50px rgba(255, 148, 8, 0.493),
-             inset 0px 0px 10px rgba(0, 0, 0, 0.3);
+  box-shadow: 0px 0px 24px rgba(255, 148, 8, 0.493),
+             inset 0px 0px 8px rgba(0, 0, 0, 0.3);
   background-image: url('images/ball3.svg');
   background-size: cover;
   background-position: center;
@@ -871,4 +870,24 @@ body.big-mode #header { padding: 6px 12px 2px; }
 body.big-mode #game-area {
   height: calc(100vh - 64px);
   margin: 4px auto;
+}
+
+/* ===== Performance mode: shadows completely off =====
+   Removes every box/text shadow and the two animated blurred layers
+   behind the title - the most expensive paints on slow devices. */
+body.no-shadows *,
+body.no-shadows *::before,
+body.no-shadows *::after {
+  box-shadow: none !important;
+  text-shadow: none !important;
+}
+
+body.no-shadows h1::before,
+body.no-shadows h1::after {
+  display: none;
+}
+
+body.no-shadows h1,
+body.no-shadows #NAME {
+  animation: none;
 }
