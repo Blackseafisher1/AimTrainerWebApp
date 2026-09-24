@@ -900,27 +900,30 @@ gameArea.addEventListener('pointerup', (e) => {
   if (dragPressId !== e.pointerId) return;
   dragPressId = null;
 
+  const startTarget = pressedTarget;
   if (pressedTarget) {
     pressedTarget.classList.remove('pressed');
     pressedTarget = null;
   }
 
-  // Was ist unter dem Finger/Zeiger beim Loslassen?
+  // Release-Position entscheidet; wenn dort kein Target ist, zaehlt das
+  // beim Press getroffene Target (Press drauf, daneben loslassen = Hit).
   const el = document.elementFromPoint(e.clientX, e.clientY);
-  const hitBtn = el && el.closest ? el.closest('.target') : null;
+  let hitBtn = el && el.closest ? el.closest('.target') : null;
+  if (!hitBtn || targets.indexOf(hitBtn) === -1) {
+    hitBtn = (startTarget && targets.indexOf(startTarget) !== -1) ? startTarget : null;
+  }
+
   if (hitBtn) {
-    const index = targets.indexOf(hitBtn);
-    if (index !== -1) {
-      // Vorgezaehlten Missclick dieses Gestes zuruecknehmen
-      if (dragMisscounted) {
-        missClicks = Math.max(0, missClicks - 1);
-        totalShots = Math.max(0, totalShots - 1);
-        dragMisscounted = false;
-      }
-      hitBtn.classList.remove('pressed');
-      const size = parseInt(hitBtn.style.width);
-      handleTargetClick(e, hitBtn, size, index);
+    // Vorgezaehlten Missclick dieses Gestes zuruecknehmen
+    if (dragMisscounted) {
+      missClicks = Math.max(0, missClicks - 1);
+      totalShots = Math.max(0, totalShots - 1);
+      dragMisscounted = false;
     }
+    hitBtn.classList.remove('pressed');
+    const size = parseInt(hitBtn.style.width);
+    handleTargetClick(e, hitBtn, size, targets.indexOf(hitBtn));
   }
 });
 
@@ -1062,22 +1065,31 @@ function hexToRgb(hex) {
   return { r: (n >> 16) & 255, g: (n >> 8) & 255, b: n & 255 };
 }
 
+function setHitEffectColor(r, g, b) {
+  const root = document.documentElement.style;
+  root.setProperty('--hit-effect-color', `rgba(${r}, ${g}, ${b}, 0.73)`);
+  root.setProperty('--hit-effect-color-start', `rgba(${r}, ${g}, ${b}, 0.3)`);
+  root.setProperty('--hit-effect-color-20', `rgba(${r}, ${g}, ${b}, 0.7)`);
+  root.setProperty('--hit-effect-color-70', `rgba(${r}, ${g}, ${b}, 0.3)`);
+  root.setProperty('--hit-effect-color-80', `rgba(${r}, ${g}, ${b}, 0.0)`);
+  root.setProperty('--hit-effect-color-85', `rgba(${r}, ${g}, ${b}, 0.1)`);
+  root.setProperty('--hit-effect-color-100', `rgba(${r}, ${g}, ${b}, 0.2)`);
+  root.setProperty('--hit-effect2', `rgb(${r}, ${g}, ${b})`);
+}
+
 function applyTargetColor() {
   const { r, g, b } = hexToRgb(targetColor);
   const root = document.documentElement.style;
   root.setProperty('--target-color', targetColor);
   root.setProperty('--target-border', `rgb(${Math.round(r * 0.72)}, ${Math.round(g * 0.72)}, ${Math.round(b * 0.72)})`);
 
-  // Hit effects folgen der Target-Farbe (nur im Red-Mode)
+  // Hit effects folgen der Target-Farbe; im Light-Mode schwarz fuer Kontrast
   if (!useImageTarget) {
-    root.setProperty('--hit-effect-color', `rgba(${r}, ${g}, ${b}, 0.73)`);
-    root.setProperty('--hit-effect-color-start', `rgba(${r}, ${g}, ${b}, 0.3)`);
-    root.setProperty('--hit-effect-color-20', `rgba(${r}, ${g}, ${b}, 0.7)`);
-    root.setProperty('--hit-effect-color-70', `rgba(${r}, ${g}, ${b}, 0.3)`);
-    root.setProperty('--hit-effect-color-80', `rgba(${r}, ${g}, ${b}, 0.0)`);
-    root.setProperty('--hit-effect-color-85', `rgba(${r}, ${g}, ${b}, 0.1)`);
-    root.setProperty('--hit-effect-color-100', `rgba(${r}, ${g}, ${b}, 0.2)`);
-    root.setProperty('--hit-effect2', `rgb(${r}, ${g}, ${b})`);
+    if (theme === 'light') {
+      setHitEffectColor(0, 0, 0);
+    } else {
+      setHitEffectColor(r, g, b);
+    }
   }
 }
 
@@ -1095,6 +1107,8 @@ function applyTheme() {
   document.body.dataset.theme = theme;
   document.getElementById('icon-sun').style.display = theme === 'dark' ? 'block' : 'none';
   document.getElementById('icon-moon').style.display = theme === 'dark' ? 'none' : 'block';
+  // Hit-Effekt-Farbe anpassen (Light-Mode => schwarz)
+  updateTargetAppearance();
 }
 
 themeBtn.addEventListener('click', () => {
@@ -1184,18 +1198,12 @@ function updateTargetAppearance() {
 
     // Update hit effect colors using CSS variables
     if (useImageTarget) {
-        // Orange/Braun für Image-Modus
-        document.documentElement.style.setProperty('--hit-effect-color', 'rgba(194, 103, 0, 0.8)');
-        document.documentElement.style.setProperty('--hit-effect-color-start', 'rgba(194, 103, 0, 0.6)');
-        document.documentElement.style.setProperty('--hit-effect-color-20', 'rgba(194, 103, 0, 0.7)');
-        document.documentElement.style.setProperty('--hit-effect-color-70', 'rgba(194, 103, 0, 0.3)');
-        document.documentElement.style.setProperty('--hit-effect-color-80', 'rgba(194, 103, 0, 0.0)');
-        document.documentElement.style.setProperty('--hit-effect-color-85', 'rgba(194, 103, 0, 0.1)');
-        document.documentElement.style.setProperty('--hit-effect-color-100', 'rgba(194, 103, 0, 0.2)');
-
-        document.documentElement.style.setProperty('--hit-effect2','rgb(194, 103, 0)');
-
-
+        // Orange fuer Image-Modus, im Light-Mode schwarz
+        if (theme === 'light') {
+            setHitEffectColor(0, 0, 0);
+        } else {
+            setHitEffectColor(194, 103, 0);
+        }
     } else {
         // Red-Mode: Farben aus der waehlbaren Target-Farbe ableiten
         applyTargetColor();
