@@ -301,8 +301,9 @@ body[data-theme="light"] #NAME {
 
 @media (hover: hover) {
   .target.red-mode:hover {
+    /* kein border-style: double - das zeichnet zwei Innenlinien, die
+       beim Pressen als Artefakt vor dem Crosshair auftauchen */
     box-shadow: 0px 0px 10px white;
-    border: 20px double var(--target-border);
   }
 }
 
