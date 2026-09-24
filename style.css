@@ -860,10 +860,6 @@ body[data-theme="light"] #NAME {
   .sound-option { min-width: 70px; padding: 7px 10px; font-size: 12px; }
 }
 
-@media (min-width: 1920px) {
-  body { overflow-y: hidden; }
-}
-
 /* ===== Big play-area mode ===== */
 body.big-mode #controls { display: none; }
 body.big-mode #header { padding: 6px 12px 2px; }
