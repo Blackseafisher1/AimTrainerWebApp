@@ -888,3 +888,8 @@ body.no-shadows h1,
 body.no-shadows #NAME {
   animation: none;
 }
+
+/* Press-Ring im Light-Mode schwarz */
+body[data-theme="light"] .target.pressed {
+  outline-color: #000;
+}

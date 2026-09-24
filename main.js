@@ -1083,13 +1083,9 @@ function applyTargetColor() {
   root.setProperty('--target-color', targetColor);
   root.setProperty('--target-border', `rgb(${Math.round(r * 0.72)}, ${Math.round(g * 0.72)}, ${Math.round(b * 0.72)})`);
 
-  // Hit effects folgen der Target-Farbe; im Light-Mode schwarz fuer Kontrast
+  // Hit effects folgen der Target-Farbe
   if (!useImageTarget) {
-    if (theme === 'light') {
-      setHitEffectColor(0, 0, 0);
-    } else {
-      setHitEffectColor(r, g, b);
-    }
+    setHitEffectColor(r, g, b);
   }
 }
 
@@ -1107,8 +1103,6 @@ function applyTheme() {
   document.body.dataset.theme = theme;
   document.getElementById('icon-sun').style.display = theme === 'dark' ? 'block' : 'none';
   document.getElementById('icon-moon').style.display = theme === 'dark' ? 'none' : 'block';
-  // Hit-Effekt-Farbe anpassen (Light-Mode => schwarz)
-  updateTargetAppearance();
 }
 
 themeBtn.addEventListener('click', () => {
@@ -1197,12 +1191,8 @@ function updateTargetAppearance() {
 
     // Update hit effect colors using CSS variables
     if (useImageTarget) {
-        // Orange fuer Image-Modus, im Light-Mode schwarz
-        if (theme === 'light') {
-            setHitEffectColor(0, 0, 0);
-        } else {
-            setHitEffectColor(194, 103, 0);
-        }
+        // Orange fuer Image-Modus
+        setHitEffectColor(194, 103, 0);
     } else {
         // Red-Mode: Farben aus der waehlbaren Target-Farbe ableiten
         applyTargetColor();
