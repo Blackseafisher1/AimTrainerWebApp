@@ -1152,21 +1152,20 @@ function setBallCount(n) {
 ballCountInput.addEventListener('change', () => setBallCount(parseInt(ballCountInput.value, 10)));
 ballCountNumber.addEventListener('change', () => setBallCount(parseFloat(ballCountNumber.value)));
 
-// Schatten komplett deaktivieren (Performance-Modus fuer langsame Geraete)
-// Standard: AUS (deaktiviert). Nur wenn der User sie explizit einschaltet,
-// bleiben sie an.
+// Schatten deaktivieren (Performance-Modus fuer langsame Geraete).
+// Standard: Schatten AUS. Gespeichert wird nur, ob der User sie AN will.
 const noShadowsBtn = document.getElementById('toggle-shadows');
-const storedNoShadows = localStorage.getItem('aimTrainerNoShadows');
-let noShadows = storedNoShadows === null ? true : storedNoShadows === 'true';
+localStorage.removeItem('aimTrainerNoShadows'); // altes, invertiertes Format
+let shadowsEnabled = localStorage.getItem('aimTrainerShadowsEnabled') === 'true';
 
 function applyNoShadows() {
-  document.body.classList.toggle('no-shadows', noShadows);
-  noShadowsBtn.textContent = noShadows ? 'Shadows: OFF' : 'Shadows: ON';
+  document.body.classList.toggle('no-shadows', !shadowsEnabled);
+  noShadowsBtn.textContent = shadowsEnabled ? 'Shadows: ON' : 'Shadows: OFF';
 }
 
 noShadowsBtn.addEventListener('click', () => {
-  noShadows = !noShadows;
-  localStorage.setItem('aimTrainerNoShadows', noShadows);
+  shadowsEnabled = !shadowsEnabled;
+  localStorage.setItem('aimTrainerShadowsEnabled', shadowsEnabled);
   applyNoShadows();
 });
 
