@@ -742,38 +742,8 @@ async function createTargets() {
     btn.style.height = `${size}px`;
     btn.dataset.index = i; // WICHTIG: Index speichern
 
-    // Event-Listener mit korrektem Index-Closure
-    const handleClick = (e) => {
-      handleTargetClick(e, btn, size, i); // i wird korrekt gebunden
-    };
-
-    // Press = visuelles Feedback (pressed class), Release = Hit zählt
-    btn.addEventListener('pointerdown', (e) => {
-      e.preventDefault();
-      btn.classList.add('pressed');
-      // Capture: pointerup kommt immer am Button an, auch wenn der
-      // Ball unter dem Finger/Zeiger wegbewegt wird
-      try { btn.setPointerCapture(e.pointerId); } catch (err) {}
-    });
-
-    const release = (e) => {
-      if (!btn.classList.contains('pressed')) return;
-      btn.classList.remove('pressed');
-      // Nur treffen, wenn der Finger/Zeiger beim Loslassen noch auf dem Target ist
-      const r = btn.getBoundingClientRect();
-      if (e.clientX >= r.left && e.clientX <= r.right &&
-          e.clientY >= r.top && e.clientY <= r.bottom) {
-        handleClick(e);
-      }
-    };
-    btn.addEventListener('pointerup', release);
-    btn.addEventListener('pointerleave', () => btn.classList.remove('pressed'));
-    btn.addEventListener('pointercancel', () => btn.classList.remove('pressed'));
-
-    // preventDefault auf pointerdown unterdrückt NICHT den nachfolgenden
-    // Click-Event -> würde als Missclick auf gameArea zählen. Schlucken.
-    btn.addEventListener('click', (e) => e.stopPropagation());
-
+    // Keine eigenen Pointer-Handler: Press/Release wird zentral auf
+    // gameArea behandelt, damit die Release-Position entscheidet.
     gameArea.appendChild(btn);
     targets.push(btn);
   }
@@ -894,19 +864,29 @@ Avg. Time: ${avgReactionTime.toFixed(2)}s`);
   updateDisplays();
 }
 
-// Missclicks einheitlich fuer Maus UND Touch: nur wenn der Press direkt
-// auf der leeren Flaeche startet. Keine Click-Listener mehr - der
-// synthetische Mobile-Click landet nach dem Wegteleportieren des Targets
-// auf gameArea und wuerde jeden Hit faelschlich als Missclick zaehlen.
-// Drag-and-Release: Press woanders, Release ueber einem Target zaehlt
-// als Hit (der evtl. vorgezaehlte Missclick wird zurueckgenommen).
+// Zentrales Press/Release auf gameArea. Die Position beim LOSLASSEN
+// entscheidet: Target -> Hit (+ evtl. vorgezaehlter Missclick wird
+// zurueckgenommen), leere Flaeche -> Missclick. Gilt fuer Maus und Touch
+// und egal, wo der Press gestartet ist ("drag and release").
 let dragPressId = null;
 let dragMisscounted = false;
+let pressedTarget = null;
 
 gameArea.addEventListener('pointerdown', (e) => {
-  if (e.target !== gameArea) return; // Target-Press: eigener Button-Handler
   dragPressId = e.pointerId;
   dragMisscounted = false;
+  pressedTarget = null;
+
+  const target = e.target.closest ? e.target.closest('.target') : null;
+  if (target) {
+    // Press auf Target: nur visuelles Feedback, kein Missclick
+    target.classList.add('pressed');
+    pressedTarget = target;
+    return;
+  }
+
+  // Press auf leerer Flaeche: sofort als Missclick zaehlen; wird beim
+  // Loslassen auf einem Target wieder rueckgaengig gemacht.
   if (roundStarted) {
     missClicks++;
     totalShots++;
@@ -920,9 +900,16 @@ gameArea.addEventListener('pointerup', (e) => {
   if (dragPressId !== e.pointerId) return;
   dragPressId = null;
 
+  if (pressedTarget) {
+    pressedTarget.classList.remove('pressed');
+    pressedTarget = null;
+  }
+
+  // Was ist unter dem Finger/Zeiger beim Loslassen?
   const el = document.elementFromPoint(e.clientX, e.clientY);
-  if (el && el.classList.contains('target')) {
-    const index = targets.indexOf(el);
+  const hitBtn = el && el.closest ? el.closest('.target') : null;
+  if (hitBtn) {
+    const index = targets.indexOf(hitBtn);
     if (index !== -1) {
       // Vorgezaehlten Missclick dieses Gestes zuruecknehmen
       if (dragMisscounted) {
@@ -930,14 +917,20 @@ gameArea.addEventListener('pointerup', (e) => {
         totalShots = Math.max(0, totalShots - 1);
         dragMisscounted = false;
       }
-      const size = parseInt(el.style.width);
-      handleTargetClick(e, el, size, index);
+      hitBtn.classList.remove('pressed');
+      const size = parseInt(hitBtn.style.width);
+      handleTargetClick(e, hitBtn, size, index);
     }
   }
 });
 
-gameArea.addEventListener('pointercancel', () => {
+gameArea.addEventListener('pointercancel', (e) => {
+  if (dragPressId !== e.pointerId) return;
   dragPressId = null;
+  if (pressedTarget) {
+    pressedTarget.classList.remove('pressed');
+    pressedTarget = null;
+  }
 });
 
 // NEU: Mausposition verfolgen
