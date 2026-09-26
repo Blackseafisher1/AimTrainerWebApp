@@ -445,7 +445,15 @@ let chaosBallCount = parseInt(localStorage.getItem('aimTrainerChaosCount'), 10);
 if (!Number.isInteger(chaosBallCount) || chaosBallCount < 2 || chaosBallCount > 8) chaosBallCount = 3;
 
 function modeTargetCount() {
-  return mode === 'chaos' ? chaosBallCount : settings[mode].count;
+  if (mode === 'chaos') return chaosBallCount;
+  const s = settings[mode];
+  return s ? s.count : 1;
+}
+
+// Sanfter Fallback, falls ein Modus (z.B. wegen gecachter alter Datei)
+// nicht in settings steht - verhindert harte Crashes.
+function modeConfig() {
+  return settings[mode] || settings.single;
 }
 
 // ===== Bewegte Targets (Bounce/Chaos) =====
@@ -456,7 +464,7 @@ let ballRafId = null;
 let ballLastTs = 0;
 
 function isMovingMode() {
-  return settings[mode].moving === true;
+  return modeConfig().moving === true;
 }
 
 function ballSpeed() {
@@ -501,7 +509,7 @@ function ballLoop(ts) {
     else if (b.y > maxY) { b.y = maxY; b.vy = -Math.abs(b.vy); }
   }
 
-  if (settings[mode].collisions) {
+  if (modeConfig().collisions) {
     resolveBallCollisions(size);
   }
 
@@ -635,8 +643,7 @@ async function getNonOverlappingPosition(size, existing, radius) {
 // Sollte async sein, da sie auf Worker wartet
 async function moveTargetToNewPosition(targetIndex) {
   const size = sizes[currentSizeIndex];
-  const radius = settings[mode].radius;
-  const btn = targets[targetIndex];
+  const radius = modeConfig().radius;
 
   // Existierende Positionen sammeln
   const existing = targets
@@ -675,7 +682,7 @@ async function teleportAllTargets() {
     await new Promise(resolve => requestAnimationFrame(resolve));
 
   const size = sizes[currentSizeIndex];
-  const radius = settings[mode].radius;
+  const radius = modeConfig().radius;
   lastPositions = [];
 
   // Container-Größe mit Schutz vor Null/negativ
