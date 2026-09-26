@@ -893,3 +893,60 @@ body.no-shadows #NAME {
 body[data-theme="light"] .target.pressed {
   outline-color: #000;
 }
+
+/* ===== Path mode ===== */
+#path-overlay {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: none;
+  pointer-events: none;
+  z-index: 5;
+  overflow: visible;
+}
+
+body.path-mode #path-overlay {
+  display: block;
+}
+
+/* Punktierte Linie zum naechsten Target (guenstig, ohne Shadow) */
+#path-line {
+  stroke: var(--path-color, var(--target-color));
+  stroke-width: 7;
+  stroke-linecap: round;
+  stroke-dasharray: 0 16;
+  opacity: 0.85;
+}
+
+/* Mit Schatten: Glow + fliessende Punkte */
+body.path-mode:not(.no-shadows) #path-line {
+  filter: drop-shadow(0 0 6px var(--path-color, var(--target-color)));
+  animation: pathFlow 0.9s linear infinite;
+}
+
+@keyframes pathFlow {
+  from { stroke-dashoffset: 0; }
+  to { stroke-dashoffset: -16; }
+}
+
+/* Naechstes Target hervorheben */
+body.path-mode .target.path-next:not(.pressed) {
+  outline: 3px solid var(--accent);
+  outline-offset: 3px;
+}
+
+body.path-mode .target.path-prev:not(.pressed) {
+  outline: 2px solid rgba(160, 160, 160, 0.6);
+  outline-offset: 3px;
+}
+
+/* Mit Schatten: pulsierender Ring am naechsten Target */
+body.path-mode:not(.no-shadows) .target.path-next:not(.pressed) {
+  animation: nextPulse 0.9s ease-in-out infinite alternate;
+}
+
+@keyframes nextPulse {
+  from { outline-offset: 3px; }
+  to { outline-offset: 8px; }
+}

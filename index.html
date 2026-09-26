@@ -44,7 +44,11 @@
   <span id="NAME">by Ege | @KARADENIZ, EGE&trade;</span>
 </div>
 
-<div id="game-area"></div>
+<div id="game-area">
+  <svg id="path-overlay" aria-hidden="true">
+    <line id="path-line" x1="0" y1="0" x2="0" y2="0"/>
+  </svg>
+</div>
 
 <div id="controls">
   <div id="toolbar">
@@ -52,6 +56,7 @@
       <option value="single">Single</option>
       <option value="multi">Multi</option>
       <option value="sniper">Sniper</option>
+      <option value="path">Path</option>
       <option value="bounce">Bounce</option>
       <option value="chaos">Chaos</option>
     </select>

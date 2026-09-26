@@ -403,6 +403,7 @@ if (bestScores === null){
 // Neue Modi in alten localStorage-Staenden nachpflegen
 if (typeof bestScores.bounce !== 'number') bestScores.bounce = 0;
 if (typeof bestScores.chaos !== 'number') bestScores.chaos = 0;
+if (typeof bestScores.path !== 'number') bestScores.path = 0;
 
 
 
@@ -414,6 +415,10 @@ let currentSizeIndex = isMobile ? 2 : 3;
 let mode = 'single';
 let targets = [];
 let lastPositions = [];
+
+// Path-Modus: Reihenfolge (Zyklus), der man folgen muss
+let pathSequence = [];
+let pathStep = 0;
 
 // Metrics variables
 let combo = 0;
@@ -427,6 +432,7 @@ const settings = {
   single: { count: 1, radius: isMobile ? 250 : 450 },
   multi: { count: 3, radius: isMobile ? 200 : 350 },
   sniper: { count: 2, radius: 'full' },
+  path: { count: 3, radius: isMobile ? 220 : 380 },
   bounce: { count: 1, radius: 'full', moving: true },
   chaos: { radius: isMobile ? 200 : 350, moving: true, collisions: true }
 };
@@ -541,7 +547,7 @@ function resolveBallCollisions(size) {
 
 
 
-const MODE_NAMES = { single: 'Single', multi: 'Multi', sniper: 'Sniper', bounce: 'Bounce', chaos: 'Chaos' };
+const MODE_NAMES = { single: 'Single', multi: 'Multi', sniper: 'Sniper', path: 'Path', bounce: 'Bounce', chaos: 'Chaos' };
 
 function updateDisplays() {
   scoreDisplay.textContent = score;
@@ -713,6 +719,48 @@ async function teleportAllTargets() {
       }
     }
   }
+
+  if (mode === 'path') updatePathLine();
+}
+
+// ===== Path-Modus =====
+function setupPathSequence() {
+  pathSequence = targets.slice();
+  // Fischer-Yates: zufaelliger Zyklus, dem der Spieler folgen muss
+  for (let i = pathSequence.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [pathSequence[i], pathSequence[j]] = [pathSequence[j], pathSequence[i]];
+  }
+  pathStep = 0;
+  updatePathHighlight();
+  updatePathLine();
+}
+
+function updatePathHighlight() {
+  targets.forEach(t => t.classList.remove('path-next', 'path-prev'));
+  if (mode !== 'path' || !pathSequence.length) return;
+  const count = pathSequence.length;
+  pathSequence[pathStep % count].classList.add('path-next');
+  pathSequence[(pathStep + count - 1) % count].classList.add('path-prev');
+}
+
+function updatePathLine() {
+  if (mode !== 'path' || !pathSequence.length) return;
+  const count = pathSequence.length;
+  const prev = pathSequence[(pathStep + count - 1) % count];
+  const next = pathSequence[pathStep % count];
+  const size = sizes[currentSizeIndex];
+  const x1 = parseFloat(prev.style.left);
+  const y1 = parseFloat(prev.style.top);
+  const x2 = parseFloat(next.style.left);
+  const y2 = parseFloat(next.style.top);
+  if ([x1, y1, x2, y2].some(isNaN)) return;
+
+  const line = document.getElementById('path-line');
+  line.setAttribute('x1', x1 + size / 2);
+  line.setAttribute('y1', y1 + size / 2);
+  line.setAttribute('x2', x2 + size / 2);
+  line.setAttribute('y2', y2 + size / 2);
 }
 
 async function createTargets() {
@@ -751,6 +799,15 @@ async function createTargets() {
   await new Promise(resolve => requestAnimationFrame(resolve));
   await teleportAllTargets();
 
+  // Path-Modus: Linie/Overlay aktivieren und Reihenfolge festlegen
+  document.body.classList.toggle('path-mode', mode === 'path');
+  if (mode === 'path') {
+    setupPathSequence();
+  } else {
+    pathSequence = [];
+    pathStep = 0;
+  }
+
   // Baelle initialisieren und Animationsloop starten
   if (isMovingMode()) {
     targets.forEach((btn, i) => {
@@ -778,8 +835,8 @@ function handleTargetClick(e, btn, size, index) {
     size
   );
 
-  // Asynchronen Teil starten
-  moveTargetToNewPosition(index).then(() => {
+  // Asynchronen Teil starten (Promise wird fuer Path-Fortschritt genutzt)
+  return moveTargetToNewPosition(index).then(() => {
     if (!roundStarted) {
       startRound();
     }
@@ -792,6 +849,13 @@ function handleTargetClick(e, btn, size, index) {
       totalReactionTime += (now - lastHitTime) / 1000;
     }
     lastHitTime = now;
+
+    // Path: Bestwert sofort live speichern (auch mitten in der Runde)
+    if (mode === 'path' && score > bestScores.path) {
+      bestScores.path = score;
+      localStorage.setItem('aimTrainerBestScores', JSON.stringify(bestScores));
+    }
+
     updateDisplays();
   });
 }
@@ -843,6 +907,7 @@ function endRound() {
   roundStarted = false;
 
   let finalScore = score - missClicks;
+  if (mode === 'path') finalScore = score; // Streak zaehlt (wird live gespeichert)
   if (finalScore < 0) finalScore = 0;
 
   // Alert nur anzeigen wenn nicht 0 Punkte
@@ -922,8 +987,32 @@ gameArea.addEventListener('pointerup', (e) => {
       dragMisscounted = false;
     }
     hitBtn.classList.remove('pressed');
+
+    // Path-Modus: nur das naechste Target in der Reihenfolge zaehlt
+    if (mode === 'path' && pathSequence.length) {
+      const nextTarget = pathSequence[pathStep % pathSequence.length];
+      if (hitBtn !== nextTarget) {
+        // Falsches Target: Streak bricht, Punkte zurueck auf 1
+        score = 1;
+        totalShots++;
+        combo = 0;
+        updateDisplays();
+        return;
+      }
+    }
+
     const size = parseInt(hitBtn.style.width);
-    handleTargetClick(e, hitBtn, size, targets.indexOf(hitBtn));
+    handleTargetClick(e, hitBtn, size, targets.indexOf(hitBtn)).then(() => {
+      if (mode === 'path') {
+        pathStep++;
+        updatePathHighlight();
+        updatePathLine();
+      }
+    });
+  } else if (mode === 'path' && dragMisscounted) {
+    // Missclick auf leerer Flaeche: Punkte auf 0
+    score = 0;
+    updateDisplays();
   }
 });
 
@@ -1085,6 +1174,7 @@ function applyTargetColor() {
 
   // Hit effects folgen der Target-Farbe
   if (!useImageTarget) {
+    root.setProperty('--path-color', targetColor);
     setHitEffectColor(r, g, b);
   }
 }
@@ -1193,6 +1283,7 @@ function updateTargetAppearance() {
     if (useImageTarget) {
         // Orange fuer Image-Modus
         setHitEffectColor(194, 103, 0);
+        document.documentElement.style.setProperty('--path-color', 'rgb(194, 103, 0)');
     } else {
         // Red-Mode: Farben aus der waehlbaren Target-Farbe ableiten
         applyTargetColor();
