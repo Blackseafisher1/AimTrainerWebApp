@@ -1448,3 +1448,13 @@ if (isMobile) {
 
 initGame();
 
+// PWA: Service Worker registrieren (nur ueber http(s)/localhost - bei
+// file:// gibt es keine Service Worker und keinen Install-Prompt).
+if ('serviceWorker' in navigator && location.protocol !== 'file:') {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js').catch((err) => {
+      console.log('Service Worker registration failed:', err);
+    });
+  });
+}
+
