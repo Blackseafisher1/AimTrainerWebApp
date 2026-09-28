@@ -644,6 +644,7 @@ async function getNonOverlappingPosition(size, existing, radius) {
 async function moveTargetToNewPosition(targetIndex) {
   const size = sizes[currentSizeIndex];
   const radius = modeConfig().radius;
+  const btn = targets[targetIndex];
 
   // Existierende Positionen sammeln
   const existing = targets
