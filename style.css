@@ -925,10 +925,11 @@ body.path-mode #path-overlay {
   opacity: 0.9;
 }
 
-/* Weiter zum uebernaechsten */
+/* Weiter zum uebernaechsten - eigene Farbe, liegt ueber den anderen Pfeilen */
 #path-line2 {
-  stroke-width: 5;
-  opacity: 0.6;
+  stroke: var(--path-color2, var(--accent));
+  stroke-width: 6;
+  opacity: 0.85;
 }
 
 /* Und zum zuletzt wieder erschienenen */
@@ -941,12 +942,19 @@ body.path-mode #path-overlay {
   fill: var(--path-color, var(--target-color));
 }
 
+#path-arrow2 path {
+  fill: var(--path-color2, var(--accent));
+}
+
 /* Mit Schatten: dezenter Glow */
 body.path-mode:not(.no-shadows) #path-line {
   filter: drop-shadow(0 0 6px var(--path-color, var(--target-color)));
 }
 
-body.path-mode:not(.no-shadows) #path-line2,
+body.path-mode:not(.no-shadows) #path-line2 {
+  filter: drop-shadow(0 0 6px var(--path-color2, var(--accent)));
+}
+
 body.path-mode:not(.no-shadows) #path-line3 {
   filter: drop-shadow(0 0 4px var(--path-color, var(--target-color)));
 }

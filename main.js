@@ -1005,6 +1005,48 @@ gameArea.addEventListener('pointerdown', (e) => {
   }
 });
 
+// Fuehrt einen Hit aus (mit Path-Regeln). Wird von Maus/Touch (pointerup)
+// UND Tastatur (simulateMouseClick) genutzt, damit beide gleich funktionieren.
+function executeHit(hitBtn, evt) {
+  const index = targets.indexOf(hitBtn);
+  if (index === -1) return;
+
+  // Path-Modus: nur das naechste Target in der Reihenfolge zaehlt
+  if (mode === 'path' && pathSequence.length) {
+    const nextTarget = pathSequence[pathStep % pathSequence.length];
+    if (hitBtn !== nextTarget) {
+      // Falsches Target: wird trotzdem zerstoert (versetzt),
+      // aber die Streak-Punkte sind weg
+      const size = parseInt(hitBtn.style.width);
+      playHitSound();
+      const rect = hitBtn.getBoundingClientRect();
+      const areaRect = gameArea.getBoundingClientRect();
+      createHitEffect(
+        rect.left - areaRect.left + size / 2,
+        rect.top - areaRect.top + size / 2,
+        size
+      );
+      score = 1;
+      totalShots++;
+      combo = 0;
+      updateDisplays();
+      moveTargetToNewPosition(index).then(() => {
+        if (mode === 'path') updatePathLine();
+      });
+      return;
+    }
+  }
+
+  const size = parseInt(hitBtn.style.width);
+  handleTargetClick(evt, hitBtn, size, index).then(() => {
+    if (mode === 'path') {
+      pathStep++;
+      updatePathHighlight();
+      updatePathLine();
+    }
+  });
+}
+
 gameArea.addEventListener('pointerup', (e) => {
   if (dragPressId !== e.pointerId) return;
   dragPressId = null;
@@ -1031,41 +1073,7 @@ gameArea.addEventListener('pointerup', (e) => {
       dragMisscounted = false;
     }
     hitBtn.classList.remove('pressed');
-
-    // Path-Modus: nur das naechste Target in der Reihenfolge zaehlt
-    if (mode === 'path' && pathSequence.length) {
-      const nextTarget = pathSequence[pathStep % pathSequence.length];
-      if (hitBtn !== nextTarget) {
-        // Falsches Target: wird trotzdem zerstoert (versetzt),
-        // aber die Streak-Punkte sind weg
-        const size = parseInt(hitBtn.style.width);
-        playHitSound();
-        const rect = hitBtn.getBoundingClientRect();
-        const areaRect = gameArea.getBoundingClientRect();
-        createHitEffect(
-          rect.left - areaRect.left + size / 2,
-          rect.top - areaRect.top + size / 2,
-          size
-        );
-        score = 1;
-        totalShots++;
-        combo = 0;
-        updateDisplays();
-        moveTargetToNewPosition(targets.indexOf(hitBtn)).then(() => {
-          if (mode === 'path') updatePathLine();
-        });
-        return;
-      }
-    }
-
-    const size = parseInt(hitBtn.style.width);
-    handleTargetClick(e, hitBtn, size, targets.indexOf(hitBtn)).then(() => {
-      if (mode === 'path') {
-        pathStep++;
-        updatePathHighlight();
-        updatePathLine();
-      }
-    });
+    executeHit(hitBtn, e);
   } else if (mode === 'path' && dragMisscounted) {
     // Missclick auf leerer Flaeche: Punkte auf 0
     score = 0;
@@ -1097,14 +1105,10 @@ function simulateMouseClick() {
   if (element && element.classList.contains('target')) {
     const index = targets.indexOf(element);
     if (index !== -1) {
-      const size = parseInt(element.style.width);
-      const simulatedEvent = {
-        stopPropagation: () => {},
-        type: 'click'
-      };
-      handleTargetClick(simulatedEvent, element, size, index);
+      executeHit(element, { stopPropagation: () => {}, type: 'click' });
     }
   } else if (roundStarted) {
+    if (mode === 'path') score = 0;
     missClicks++;
     totalShots++;
     combo = 0;
@@ -1203,6 +1207,7 @@ if (localStorage.getItem('useImageTarget') === 'true') {
 // Adjustable target color (red mode)
 let targetColor = localStorage.getItem('aimTrainerTargetColor') || '#ff0000';
 let pathColor = localStorage.getItem('aimTrainerPathColor'); // null = folgt der Target-Farbe
+let pathColor2 = localStorage.getItem('aimTrainerPathColor2'); // null = Akzentfarbe
 const targetColorInput = document.getElementById('target-color');
 
 function hexToRgb(hex) {
@@ -1224,10 +1229,13 @@ function setHitEffectColor(r, g, b) {
   root.setProperty('--hit-effect2', `rgb(${r}, ${g}, ${b})`);
 }
 
-// Linienfarbe im Path-Modus (Standard: Target-Farbe bzw. Orange im Image-Mode)
+// Linienfarben im Path-Modus (Standard: Target-Farbe bzw. Orange im Image-Mode).
+// Farbe 2 ist fuer den "next next"-Pfeil (zum uebernaechsten Target).
 function refreshPathColor() {
   const fallback = useImageTarget ? 'rgb(194, 103, 0)' : targetColor;
-  document.documentElement.style.setProperty('--path-color', pathColor || fallback);
+  const root = document.documentElement.style;
+  root.setProperty('--path-color', pathColor || fallback);
+  if (pathColor2) root.setProperty('--path-color2', pathColor2);
 }
 
 function applyTargetColor() {
@@ -1274,7 +1282,9 @@ const ballCountNumber = document.getElementById('ball-count-number');
 const speedSettings = document.getElementById('speed-settings');
 const chaosSettings = document.getElementById('chaos-settings');
 const pathColorSetting = document.getElementById('path-color-setting');
+const pathColor2Setting = document.getElementById('path-color2-setting');
 const pathColorInput = document.getElementById('path-color');
+const pathColor2Input = document.getElementById('path-color2');
 const modeSettingsCol = document.getElementById('mode-settings-col');
 
 function updateModeSettingsVisibility() {
@@ -1284,12 +1294,19 @@ function updateModeSettingsVisibility() {
   speedSettings.style.display = (showBounce || showChaos) ? '' : 'none';
   chaosSettings.style.display = showChaos ? '' : 'none';
   pathColorSetting.style.display = showPath ? '' : 'none';
+  pathColor2Setting.style.display = showPath ? '' : 'none';
   modeSettingsCol.style.display = (showBounce || showChaos || showPath) ? '' : 'none';
 }
 
 pathColorInput.addEventListener('input', () => {
   pathColor = pathColorInput.value;
   localStorage.setItem('aimTrainerPathColor', pathColor);
+  refreshPathColor();
+});
+
+pathColor2Input.addEventListener('input', () => {
+  pathColor2 = pathColor2Input.value;
+  localStorage.setItem('aimTrainerPathColor2', pathColor2);
   refreshPathColor();
 });
 
@@ -1410,6 +1427,7 @@ if (isMobile) {
   ballCountInput.value = chaosBallCount;
   ballCountNumber.value = chaosBallCount;
   pathColorInput.value = pathColor || targetColor;
+  pathColor2Input.value = pathColor2 || '#ffd166';
   updateModeSettingsVisibility();
   applyNoShadows();
   createAudioContext();
