@@ -1185,6 +1185,7 @@ if (localStorage.getItem('useImageTarget') === 'true') {
 
 // Adjustable target color (red mode)
 let targetColor = localStorage.getItem('aimTrainerTargetColor') || '#ff0000';
+let pathColor = localStorage.getItem('aimTrainerPathColor'); // null = folgt der Target-Farbe
 const targetColorInput = document.getElementById('target-color');
 
 function hexToRgb(hex) {
@@ -1206,6 +1207,12 @@ function setHitEffectColor(r, g, b) {
   root.setProperty('--hit-effect2', `rgb(${r}, ${g}, ${b})`);
 }
 
+// Linienfarbe im Path-Modus (Standard: Target-Farbe bzw. Orange im Image-Mode)
+function refreshPathColor() {
+  const fallback = useImageTarget ? 'rgb(194, 103, 0)' : targetColor;
+  document.documentElement.style.setProperty('--path-color', pathColor || fallback);
+}
+
 function applyTargetColor() {
   const { r, g, b } = hexToRgb(targetColor);
   const root = document.documentElement.style;
@@ -1214,15 +1221,16 @@ function applyTargetColor() {
 
   // Hit effects folgen der Target-Farbe
   if (!useImageTarget) {
-    root.setProperty('--path-color', targetColor);
     setHitEffectColor(r, g, b);
   }
+  refreshPathColor();
 }
 
 targetColorInput.addEventListener('input', () => {
   targetColor = targetColorInput.value;
   localStorage.setItem('aimTrainerTargetColor', targetColor);
   applyTargetColor();
+  if (!pathColor) pathColorInput.value = targetColor;
 });
 
 // Light/Dark mode
@@ -1241,21 +1249,32 @@ themeBtn.addEventListener('click', () => {
   applyTheme();
 });
 
-// Mode-spezifische Einstellungen (nur bei Bounce/Chaos sichtbar)
+// Mode-spezifische Einstellungen (nur bei Bounce/Chaos/Path sichtbar)
 const ballSpeedInput = document.getElementById('ball-speed');
 const ballSpeedNumber = document.getElementById('ball-speed-number');
 const ballCountInput = document.getElementById('ball-count');
 const ballCountNumber = document.getElementById('ball-count-number');
 const speedSettings = document.getElementById('speed-settings');
 const chaosSettings = document.getElementById('chaos-settings');
+const pathColorSetting = document.getElementById('path-color-setting');
+const pathColorInput = document.getElementById('path-color');
 const modeSettingsCol = document.getElementById('mode-settings-col');
 
 function updateModeSettingsVisibility() {
-  const moving = (mode === 'bounce' || mode === 'chaos');
-  speedSettings.style.display = moving ? '' : 'none';
-  chaosSettings.style.display = (mode === 'chaos') ? '' : 'none';
-  modeSettingsCol.style.display = moving ? '' : 'none';
+  const showBounce = mode === 'bounce';
+  const showChaos = mode === 'chaos';
+  const showPath = mode === 'path';
+  speedSettings.style.display = (showBounce || showChaos) ? '' : 'none';
+  chaosSettings.style.display = showChaos ? '' : 'none';
+  pathColorSetting.style.display = showPath ? '' : 'none';
+  modeSettingsCol.style.display = (showBounce || showChaos || showPath) ? '' : 'none';
 }
+
+pathColorInput.addEventListener('input', () => {
+  pathColor = pathColorInput.value;
+  localStorage.setItem('aimTrainerPathColor', pathColor);
+  refreshPathColor();
+});
 
 function setBallSpeed(f, scaleLive = true) {
   if (!isFinite(f)) f = ballSpeedFactor;
@@ -1323,11 +1342,11 @@ function updateTargetAppearance() {
     if (useImageTarget) {
         // Orange fuer Image-Modus
         setHitEffectColor(194, 103, 0);
-        document.documentElement.style.setProperty('--path-color', 'rgb(194, 103, 0)');
     } else {
         // Red-Mode: Farben aus der waehlbaren Target-Farbe ableiten
         applyTargetColor();
     }
+    refreshPathColor();
 
     toggleTargetBtn.textContent = useImageTarget ? "Switch to Red" : "Switch to Image";
 }
@@ -1373,6 +1392,7 @@ if (isMobile) {
   ballSpeedNumber.value = ballSpeedFactor;
   ballCountInput.value = chaosBallCount;
   ballCountNumber.value = chaosBallCount;
+  pathColorInput.value = pathColor || targetColor;
   updateModeSettingsVisibility();
   applyNoShadows();
   createAudioContext();
