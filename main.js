@@ -1287,24 +1287,33 @@ const pathNextColorInput = document.getElementById('path-next-color');
 const pathOtherColorInput = document.getElementById('path-other-color');
 const modeSettingsCol = document.getElementById('mode-settings-col');
 
+// Toleriert fehlende Elemente (z.B. wenn HTML/JS unterschiedlich gecacht sind)
+function showEl(el, on) {
+  if (el) el.style.display = on ? '' : 'none';
+}
+
+function bindInput(el, handler) {
+  if (el) el.addEventListener('input', handler);
+}
+
 function updateModeSettingsVisibility() {
   const showBounce = mode === 'bounce';
   const showChaos = mode === 'chaos';
   const showPath = mode === 'path';
-  speedSettings.style.display = (showBounce || showChaos) ? '' : 'none';
-  chaosSettings.style.display = showChaos ? '' : 'none';
-  pathNextSetting.style.display = showPath ? '' : 'none';
-  pathOtherSetting.style.display = showPath ? '' : 'none';
-  modeSettingsCol.style.display = (showBounce || showChaos || showPath) ? '' : 'none';
+  showEl(speedSettings, showBounce || showChaos);
+  showEl(chaosSettings, showChaos);
+  showEl(pathNextSetting, showPath);
+  showEl(pathOtherSetting, showPath);
+  showEl(modeSettingsCol, showBounce || showChaos || showPath);
 }
 
-pathNextColorInput.addEventListener('input', () => {
+bindInput(pathNextColorInput, () => {
   pathNextColor = pathNextColorInput.value;
   localStorage.setItem('aimTrainerPathNextColor', pathNextColor);
   refreshPathColor();
 });
 
-pathOtherColorInput.addEventListener('input', () => {
+bindInput(pathOtherColorInput, () => {
   pathOtherColor = pathOtherColorInput.value;
   localStorage.setItem('aimTrainerPathOtherColor', pathOtherColor);
   refreshPathColor();
@@ -1426,8 +1435,8 @@ if (isMobile) {
   ballSpeedNumber.value = ballSpeedFactor;
   ballCountInput.value = chaosBallCount;
   ballCountNumber.value = chaosBallCount;
-  pathNextColorInput.value = pathNextColor || '#06d6a0';
-  pathOtherColorInput.value = pathOtherColor || '#ffd166';
+  if (pathNextColorInput) pathNextColorInput.value = pathNextColor || '#06d6a0';
+  if (pathOtherColorInput) pathOtherColorInput.value = pathOtherColor || '#ffd166';
   updateModeSettingsVisibility();
   applyNoShadows();
   createAudioContext();
