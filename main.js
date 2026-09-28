@@ -756,9 +756,9 @@ function updatePathHighlight() {
 function updatePathLine() {
   if (mode !== 'path' || pathSequence.length < 2) return;
   const count = pathSequence.length;
-  const prev = pathSequence[(pathStep + count - 1) % count];
   const next = pathSequence[pathStep % count];
   const overnext = pathSequence[(pathStep + 1) % count];
+  const prev = pathSequence[(pathStep + count - 1) % count];
   const size = sizes[currentSizeIndex];
 
   const center = t => {
@@ -783,9 +783,11 @@ function updatePathLine() {
     lineEl.setAttribute('y2', b.y - uy * gap);
   };
 
-  // Zwei Segmente: zuerst zum naechsten, dann zum uebernaechsten (Kette)
-  setSegment(document.getElementById('path-line'), center(prev), center(next));
-  setSegment(document.getElementById('path-line2'), center(next), center(overnext));
+  // NIE einen Pfeil AUF das Target zeigen, das getroffen werden muss.
+  // Die Kette startet deshalb am naechsten Target und zeigt danach weiter:
+  // next -> overnext und overnext -> prev
+  setSegment(document.getElementById('path-line'), center(next), center(overnext));
+  setSegment(document.getElementById('path-line2'), center(overnext), center(prev));
 }
 
 async function createTargets() {
