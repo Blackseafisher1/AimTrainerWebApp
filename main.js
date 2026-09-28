@@ -419,6 +419,9 @@ let lastPositions = [];
 // Path-Modus: Reihenfolge (Zyklus), der man folgen muss
 let pathSequence = [];
 let pathStep = 0;
+// Ort (Mitte), an dem das zuletzt zerstoerte Target stand - dort beginnt
+// der erste Pfeil, bis das naechste Ziel zerstoert wird
+let pathGhost = null;
 
 // Metrics variables
 let combo = 0;
@@ -740,6 +743,7 @@ function setupPathSequence() {
     [pathSequence[i], pathSequence[j]] = [pathSequence[j], pathSequence[i]];
   }
   pathStep = 0;
+  pathGhost = null;
   updatePathHighlight();
   updatePathLine();
 }
@@ -784,10 +788,14 @@ function updatePathLine() {
   };
 
   // NIE einen Pfeil AUF das Target zeigen, das getroffen werden muss.
-  // Die Kette startet deshalb am naechsten Target und zeigt danach weiter:
-  // next -> overnext und overnext -> prev
-  setSegment(document.getElementById('path-line'), center(next), center(overnext));
-  setSegment(document.getElementById('path-line2'), center(overnext), center(prev));
+  // Kette: Ort des letzten Ziels -> next -> overnext -> prev
+  const start = pathGhost
+    ? { x: pathGhost.x, y: pathGhost.y, ok: true }
+    : center(prev);
+
+  setSegment(document.getElementById('path-line'), start, center(next));
+  setSegment(document.getElementById('path-line2'), center(next), center(overnext));
+  setSegment(document.getElementById('path-line3'), center(overnext), center(prev));
 }
 
 async function createTargets() {
@@ -852,6 +860,15 @@ async function createTargets() {
 function handleTargetClick(e, btn, size, index) {
   e.stopPropagation();
   playHitSound();
+
+  // Path: Ort merken, an dem das zerstoerte Target stand (Pfeil-Ursprung)
+  if (mode === 'path') {
+    const lx = parseFloat(btn.style.left);
+    const ly = parseFloat(btn.style.top);
+    if (!isNaN(lx) && !isNaN(ly)) {
+      pathGhost = { x: lx + size / 2, y: ly + size / 2 };
+    }
+  }
 
   // Synchroner Teil
   const rect = btn.getBoundingClientRect();

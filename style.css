@@ -913,21 +913,28 @@ body.path-mode #path-overlay {
 
 /* Durchgezogene Linien im Path-Modus (guenstig, ohne Shadow) */
 #path-line,
-#path-line2 {
+#path-line2,
+#path-line3 {
   stroke: var(--path-color, var(--target-color));
   stroke-linecap: round;
 }
 
-/* Segment zum uebernaechsten Target */
+/* Vom Ort des letzten Ziels zum naechsten Ziel */
 #path-line {
   stroke-width: 6;
   opacity: 0.9;
 }
 
-/* Segment danach (Kette) */
+/* Weiter zum uebernaechsten */
 #path-line2 {
+  stroke-width: 5;
+  opacity: 0.6;
+}
+
+/* Und zum zuletzt wieder erschienenen */
+#path-line3 {
   stroke-width: 4;
-  opacity: 0.55;
+  opacity: 0.4;
 }
 
 #path-arrow path {
@@ -939,7 +946,8 @@ body.path-mode:not(.no-shadows) #path-line {
   filter: drop-shadow(0 0 6px var(--path-color, var(--target-color)));
 }
 
-body.path-mode:not(.no-shadows) #path-line2 {
+body.path-mode:not(.no-shadows) #path-line2,
+body.path-mode:not(.no-shadows) #path-line3 {
   filter: drop-shadow(0 0 4px var(--path-color, var(--target-color)));
 }
 
