@@ -745,30 +745,47 @@ function setupPathSequence() {
 }
 
 function updatePathHighlight() {
-  targets.forEach(t => t.classList.remove('path-next', 'path-prev'));
-  if (mode !== 'path' || !pathSequence.length) return;
+  targets.forEach(t => t.classList.remove('path-next', 'path-next2', 'path-prev'));
+  if (mode !== 'path' || pathSequence.length < 2) return;
   const count = pathSequence.length;
   pathSequence[pathStep % count].classList.add('path-next');
+  pathSequence[(pathStep + 1) % count].classList.add('path-next2');
   pathSequence[(pathStep + count - 1) % count].classList.add('path-prev');
 }
 
 function updatePathLine() {
-  if (mode !== 'path' || !pathSequence.length) return;
+  if (mode !== 'path' || pathSequence.length < 2) return;
   const count = pathSequence.length;
   const prev = pathSequence[(pathStep + count - 1) % count];
   const next = pathSequence[pathStep % count];
+  const overnext = pathSequence[(pathStep + 1) % count];
   const size = sizes[currentSizeIndex];
-  const x1 = parseFloat(prev.style.left);
-  const y1 = parseFloat(prev.style.top);
-  const x2 = parseFloat(next.style.left);
-  const y2 = parseFloat(next.style.top);
-  if ([x1, y1, x2, y2].some(isNaN)) return;
 
-  const line = document.getElementById('path-line');
-  line.setAttribute('x1', x1 + size / 2);
-  line.setAttribute('y1', y1 + size / 2);
-  line.setAttribute('x2', x2 + size / 2);
-  line.setAttribute('y2', y2 + size / 2);
+  const center = t => {
+    const lx = parseFloat(t.style.left);
+    const ly = parseFloat(t.style.top);
+    return { x: lx + size / 2, y: ly + size / 2, ok: !isNaN(lx) && !isNaN(ly) };
+  };
+
+  // Linie an den Target-Raendern beginnen/enden lassen (Pfeilspitze am Rand)
+  const setSegment = (lineEl, a, b) => {
+    if (!a.ok || !b.ok) return;
+    const dx = b.x - a.x;
+    const dy = b.y - a.y;
+    const d = Math.hypot(dx, dy);
+    if (d < 1) return;
+    const ux = dx / d;
+    const uy = dy / d;
+    const gap = Math.max(0, Math.min(size / 2 + 4, d / 2 - 2));
+    lineEl.setAttribute('x1', a.x + ux * gap);
+    lineEl.setAttribute('y1', a.y + uy * gap);
+    lineEl.setAttribute('x2', b.x - ux * gap);
+    lineEl.setAttribute('y2', b.y - uy * gap);
+  };
+
+  // Zwei Segmente: zuerst zum naechsten, dann zum uebernaechsten (Kette)
+  setSegment(document.getElementById('path-line'), center(prev), center(next));
+  setSegment(document.getElementById('path-line2'), center(next), center(overnext));
 }
 
 async function createTargets() {
@@ -1000,11 +1017,24 @@ gameArea.addEventListener('pointerup', (e) => {
     if (mode === 'path' && pathSequence.length) {
       const nextTarget = pathSequence[pathStep % pathSequence.length];
       if (hitBtn !== nextTarget) {
-        // Falsches Target: Streak bricht, Punkte zurueck auf 1
+        // Falsches Target: wird trotzdem zerstoert (versetzt),
+        // aber die Streak-Punkte sind weg
+        const size = parseInt(hitBtn.style.width);
+        playHitSound();
+        const rect = hitBtn.getBoundingClientRect();
+        const areaRect = gameArea.getBoundingClientRect();
+        createHitEffect(
+          rect.left - areaRect.left + size / 2,
+          rect.top - areaRect.top + size / 2,
+          size
+        );
         score = 1;
         totalShots++;
         combo = 0;
         updateDisplays();
+        moveTargetToNewPosition(targets.indexOf(hitBtn)).then(() => {
+          if (mode === 'path') updatePathLine();
+        });
         return;
       }
     }

@@ -910,19 +910,38 @@ body.path-mode #path-overlay {
   display: block;
 }
 
-/* Punktierte Linie zum naechsten Target (guenstig, ohne Shadow) */
-#path-line {
+/* Punktierte Linien im Path-Modus (guenstig, ohne Shadow) */
+#path-line,
+#path-line2 {
   stroke: var(--path-color, var(--target-color));
-  stroke-width: 7;
   stroke-linecap: round;
   stroke-dasharray: 0 16;
+}
+
+/* Segment zum naechsten Target */
+#path-line {
+  stroke-width: 7;
   opacity: 0.85;
+}
+
+/* Segment zum uebernaechsten Target (Kette) */
+#path-line2 {
+  stroke-width: 5;
+  opacity: 0.5;
+}
+
+#path-arrow path {
+  fill: var(--path-color, var(--target-color));
 }
 
 /* Mit Schatten: Glow + fliessende Punkte */
 body.path-mode:not(.no-shadows) #path-line {
   filter: drop-shadow(0 0 6px var(--path-color, var(--target-color)));
   animation: pathFlow 0.9s linear infinite;
+}
+
+body.path-mode:not(.no-shadows) #path-line2 {
+  filter: drop-shadow(0 0 4px var(--path-color, var(--target-color)));
 }
 
 @keyframes pathFlow {
@@ -933,6 +952,12 @@ body.path-mode:not(.no-shadows) #path-line {
 /* Naechstes Target hervorheben */
 body.path-mode .target.path-next:not(.pressed) {
   outline: 3px solid var(--accent);
+  outline-offset: 3px;
+}
+
+/* Uebernaechstes Target (dezent) */
+body.path-mode .target.path-next2:not(.pressed) {
+  outline: 2px dashed var(--accent);
   outline-offset: 3px;
 }
 
