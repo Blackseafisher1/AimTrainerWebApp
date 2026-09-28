@@ -915,48 +915,48 @@ body.path-mode #path-overlay {
 #path-line,
 #path-line2,
 #path-line3 {
-  stroke: var(--path-color, var(--target-color));
   stroke-linecap: round;
 }
 
-/* Vom Ort des letzten Ziels zum naechsten Ziel */
+/* Vom Ort des letzten Ziels zum naechsten Ziel ("Next"-Farbe, oben) */
 #path-line {
+  stroke: var(--path-next-color, #06d6a0);
   stroke-width: 6;
   opacity: 0.9;
 }
 
-/* Weiter zum uebernaechsten - eigene Farbe, liegt ueber den anderen Pfeilen */
+/* Die weiteren Pfeile ("Other"-Farbe) */
 #path-line2 {
-  stroke: var(--path-color2, var(--accent));
-  stroke-width: 6;
-  opacity: 0.85;
+  stroke: var(--path-color, #ffd166);
+  stroke-width: 5;
+  opacity: 0.65;
 }
 
-/* Und zum zuletzt wieder erschienenen */
 #path-line3 {
+  stroke: var(--path-color, #ffd166);
   stroke-width: 4;
   opacity: 0.4;
 }
 
 #path-arrow path {
-  fill: var(--path-color, var(--target-color));
+  fill: var(--path-color, #ffd166);
 }
 
 #path-arrow2 path {
-  fill: var(--path-color2, var(--accent));
+  fill: var(--path-next-color, #06d6a0);
 }
 
 /* Mit Schatten: dezenter Glow */
 body.path-mode:not(.no-shadows) #path-line {
-  filter: drop-shadow(0 0 6px var(--path-color, var(--target-color)));
+  filter: drop-shadow(0 0 6px var(--path-next-color, #06d6a0));
 }
 
 body.path-mode:not(.no-shadows) #path-line2 {
-  filter: drop-shadow(0 0 6px var(--path-color2, var(--accent)));
+  filter: drop-shadow(0 0 5px var(--path-color, #ffd166));
 }
 
 body.path-mode:not(.no-shadows) #path-line3 {
-  filter: drop-shadow(0 0 4px var(--path-color, var(--target-color)));
+  filter: drop-shadow(0 0 4px var(--path-color, #ffd166));
 }
 
 /* Rollen klar unterscheiden: Treffen (gruen), danach (gelb), davor (grau) */

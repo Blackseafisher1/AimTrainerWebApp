@@ -1206,8 +1206,10 @@ if (localStorage.getItem('useImageTarget') === 'true') {
 
 // Adjustable target color (red mode)
 let targetColor = localStorage.getItem('aimTrainerTargetColor') || '#ff0000';
-let pathColor = localStorage.getItem('aimTrainerPathColor'); // null = folgt der Target-Farbe
-let pathColor2 = localStorage.getItem('aimTrainerPathColor2'); // null = Akzentfarbe
+// Zwei einstellbare Linienfarben im Path-Modus: "next" (Pfeil zum
+// naechsten Ziel) und "other" (die weiteren Pfeile)
+let pathNextColor = localStorage.getItem('aimTrainerPathNextColor');
+let pathOtherColor = localStorage.getItem('aimTrainerPathOtherColor');
 const targetColorInput = document.getElementById('target-color');
 
 function hexToRgb(hex) {
@@ -1229,13 +1231,12 @@ function setHitEffectColor(r, g, b) {
   root.setProperty('--hit-effect2', `rgb(${r}, ${g}, ${b})`);
 }
 
-// Linienfarben im Path-Modus (Standard: Target-Farbe bzw. Orange im Image-Mode).
-// Farbe 2 ist fuer den "next next"-Pfeil (zum uebernaechsten Target).
+// Linienfarben im Path-Modus: "Next" (Pfeil zum naechsten Ziel) und
+// "Other" (uebrige Pfeile). Standardfarben passend zu den Ringen.
 function refreshPathColor() {
-  const fallback = useImageTarget ? 'rgb(194, 103, 0)' : targetColor;
   const root = document.documentElement.style;
-  root.setProperty('--path-color', pathColor || fallback);
-  if (pathColor2) root.setProperty('--path-color2', pathColor2);
+  root.setProperty('--path-next-color', pathNextColor || '#06d6a0');
+  root.setProperty('--path-color', pathOtherColor || '#ffd166');
 }
 
 function applyTargetColor() {
@@ -1255,7 +1256,6 @@ targetColorInput.addEventListener('input', () => {
   targetColor = targetColorInput.value;
   localStorage.setItem('aimTrainerTargetColor', targetColor);
   applyTargetColor();
-  if (!pathColor) pathColorInput.value = targetColor;
 });
 
 // Light/Dark mode
@@ -1281,10 +1281,10 @@ const ballCountInput = document.getElementById('ball-count');
 const ballCountNumber = document.getElementById('ball-count-number');
 const speedSettings = document.getElementById('speed-settings');
 const chaosSettings = document.getElementById('chaos-settings');
-const pathColorSetting = document.getElementById('path-color-setting');
-const pathColor2Setting = document.getElementById('path-color2-setting');
-const pathColorInput = document.getElementById('path-color');
-const pathColor2Input = document.getElementById('path-color2');
+const pathNextSetting = document.getElementById('path-next-setting');
+const pathOtherSetting = document.getElementById('path-other-setting');
+const pathNextColorInput = document.getElementById('path-next-color');
+const pathOtherColorInput = document.getElementById('path-other-color');
 const modeSettingsCol = document.getElementById('mode-settings-col');
 
 function updateModeSettingsVisibility() {
@@ -1293,20 +1293,20 @@ function updateModeSettingsVisibility() {
   const showPath = mode === 'path';
   speedSettings.style.display = (showBounce || showChaos) ? '' : 'none';
   chaosSettings.style.display = showChaos ? '' : 'none';
-  pathColorSetting.style.display = showPath ? '' : 'none';
-  pathColor2Setting.style.display = showPath ? '' : 'none';
+  pathNextSetting.style.display = showPath ? '' : 'none';
+  pathOtherSetting.style.display = showPath ? '' : 'none';
   modeSettingsCol.style.display = (showBounce || showChaos || showPath) ? '' : 'none';
 }
 
-pathColorInput.addEventListener('input', () => {
-  pathColor = pathColorInput.value;
-  localStorage.setItem('aimTrainerPathColor', pathColor);
+pathNextColorInput.addEventListener('input', () => {
+  pathNextColor = pathNextColorInput.value;
+  localStorage.setItem('aimTrainerPathNextColor', pathNextColor);
   refreshPathColor();
 });
 
-pathColor2Input.addEventListener('input', () => {
-  pathColor2 = pathColor2Input.value;
-  localStorage.setItem('aimTrainerPathColor2', pathColor2);
+pathOtherColorInput.addEventListener('input', () => {
+  pathOtherColor = pathOtherColorInput.value;
+  localStorage.setItem('aimTrainerPathOtherColor', pathOtherColor);
   refreshPathColor();
 });
 
@@ -1426,8 +1426,8 @@ if (isMobile) {
   ballSpeedNumber.value = ballSpeedFactor;
   ballCountInput.value = chaosBallCount;
   ballCountNumber.value = chaosBallCount;
-  pathColorInput.value = pathColor || targetColor;
-  pathColor2Input.value = pathColor2 || '#ffd166';
+  pathNextColorInput.value = pathNextColor || '#06d6a0';
+  pathOtherColorInput.value = pathOtherColor || '#ffd166';
   updateModeSettingsVisibility();
   applyNoShadows();
   createAudioContext();
