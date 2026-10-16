@@ -559,6 +559,11 @@ function resolveBallCollisions(size) {
 
 
 const MODE_NAMES = { single: 'Single', multi: 'Multi', sniper: 'Sniper', path: 'Path', bounce: 'Bounce', chaos: 'Chaos' };
+const MODE_ORDER = ['single', 'multi', 'sniper', 'path', 'bounce', 'chaos'];
+
+function updateModeToggleButton() {
+  modeSelect.textContent = `Mode: ${MODE_NAMES[mode] || mode}`;
+}
 
 function updateDisplays() {
   scoreDisplay.textContent = score;
@@ -1153,11 +1158,14 @@ sizeBtn.addEventListener('click', async () => {
 
 
 
-modeSelect.addEventListener('change', async () => {
+modeSelect.addEventListener('click', async () => {
   if (roundStarted) {
     endRound();
   }
-  mode = modeSelect.value;
+  const currentIndex = MODE_ORDER.indexOf(mode);
+  const nextIndex = (currentIndex + 1) % MODE_ORDER.length;
+  mode = MODE_ORDER[nextIndex];
+  updateModeToggleButton();
   updateModeSettingsVisibility();
   await createTargets();
   updateDisplays();
@@ -1428,7 +1436,7 @@ if (isMobile) {
   updateDisplays();
   updateSoundStatus();
   updateSoundButtons();
-  modeSelect.value = mode;
+  updateModeToggleButton();
   targetColorInput.value = targetColor;
   applyTheme();
   ballSpeedInput.value = ballSpeedFactor;
@@ -1457,4 +1465,3 @@ if ('serviceWorker' in navigator && location.protocol !== 'file:') {
     });
   });
 }
-
