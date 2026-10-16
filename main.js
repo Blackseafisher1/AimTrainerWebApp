@@ -16,6 +16,7 @@ const resetSoundBtn = document.getElementById('reset-sound');
 const soundUpload = document.getElementById('soundUploadBtn');
 
 const toggleTargetBtn = document.getElementById('toggle-target');
+const toggleImageStyleBtn = document.getElementById('toggle-image-style');
 
 const scrollPreventer = e => e.preventDefault();
 
@@ -559,6 +560,11 @@ function resolveBallCollisions(size) {
 
 
 const MODE_NAMES = { single: 'Single', multi: 'Multi', sniper: 'Sniper', path: 'Path', bounce: 'Bounce', chaos: 'Chaos' };
+const MODE_ORDER = ['single', 'multi', 'sniper', 'path', 'bounce', 'chaos'];
+
+function updateModeToggleButton() {
+  modeSelect.textContent = `Mode: ${MODE_NAMES[mode] || mode}`;
+}
 
 function updateDisplays() {
   scoreDisplay.textContent = score;
@@ -1153,11 +1159,14 @@ sizeBtn.addEventListener('click', async () => {
 
 
 
-modeSelect.addEventListener('change', async () => {
+modeSelect.addEventListener('click', async () => {
   if (roundStarted) {
     endRound();
   }
-  mode = modeSelect.value;
+  const currentIndex = MODE_ORDER.indexOf(mode);
+  const nextIndex = (currentIndex + 1) % MODE_ORDER.length;
+  mode = MODE_ORDER[nextIndex];
+  updateModeToggleButton();
   updateModeSettingsVisibility();
   await createTargets();
   updateDisplays();
@@ -1202,6 +1211,10 @@ resetSoundBtn.addEventListener('click', () => {
 let useImageTarget = false;
 if (localStorage.getItem('useImageTarget') === 'true') {
     useImageTarget = true;
+}
+let useGkImageTarget = false;
+if (localStorage.getItem('useGkImageTarget') === 'true') {
+    useGkImageTarget = true;
 }
 
 // Adjustable target color (red mode)
@@ -1375,9 +1388,11 @@ function updateTargetAppearance() {
         if (useImageTarget) {
             target.classList.add('image-mode');
             target.classList.remove('red-mode');
+            target.classList.toggle('gk-mode', useGkImageTarget);
         } else {
             target.classList.add('red-mode');
             target.classList.remove('image-mode');
+            target.classList.remove('gk-mode');
         }
     });
 
@@ -1392,11 +1407,18 @@ function updateTargetAppearance() {
     refreshPathColor();
 
     toggleTargetBtn.textContent = useImageTarget ? "Switch to Red" : "Switch to Image";
+    toggleImageStyleBtn.textContent = useGkImageTarget ? "Image: GK" : "Image: Wood";
 }
 
 toggleTargetBtn.addEventListener('click', function() {
     useImageTarget = !useImageTarget;
     localStorage.setItem('useImageTarget', useImageTarget);
+    updateTargetAppearance();
+});
+
+toggleImageStyleBtn.addEventListener('click', function() {
+    useGkImageTarget = !useGkImageTarget;
+    localStorage.setItem('useGkImageTarget', useGkImageTarget);
     updateTargetAppearance();
 });
 
@@ -1428,7 +1450,7 @@ if (isMobile) {
   updateDisplays();
   updateSoundStatus();
   updateSoundButtons();
-  modeSelect.value = mode;
+  updateModeToggleButton();
   targetColorInput.value = targetColor;
   applyTheme();
   ballSpeedInput.value = ballSpeedFactor;
@@ -1457,4 +1479,3 @@ if ('serviceWorker' in navigator && location.protocol !== 'file:') {
     });
   });
 }
-

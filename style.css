@@ -319,6 +319,10 @@ body[data-theme="light"] #NAME {
   overflow: hidden;
 }
 
+.target.image-mode.gk-mode {
+  background-image: url('images/gk.jpg');
+}
+
 .target.image-mode::before {
   content: '';
   position: absolute;

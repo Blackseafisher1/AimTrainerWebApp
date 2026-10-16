@@ -71,14 +71,7 @@
 
 <div id="controls">
   <div id="toolbar">
-    <select id="mode-select" aria-label="Game mode">
-      <option value="single">Single</option>
-      <option value="multi">Multi</option>
-      <option value="sniper">Sniper</option>
-      <option value="path">Path</option>
-      <option value="bounce">Bounce</option>
-      <option value="chaos">Chaos</option>
-    </select>
+    <button id="mode-select" class="btn" aria-label="Toggle game mode">Mode: Single</button>
     <button id="size-btn" class="btn">Target Size</button>
     <button id="stop-btn" class="btn">Stop Round</button>
   </div>
@@ -157,6 +150,7 @@
       <div class="settings-col">
         <h3>Target &amp; Effects</h3>
         <button id="toggle-target" class="miniButton">Switch to Image</button>
+        <button id="toggle-image-style" class="miniButton">Image: Wood</button>
         <button id="toggle-shadows" class="miniButton">Shadows: OFF</button>
         <div class="color-row">
           <label for="target-color">Target color</label>
