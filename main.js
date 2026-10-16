@@ -21,11 +21,12 @@ const toggleImageStyleBtn = document.getElementById('toggle-image-style');
 const scrollPreventer = e => e.preventDefault();
 
 
-let useAlternativeHitEffect = false;
+let useAlternativeHitEffect = true;
 
 // Initialisierung aus localStorage
-if (localStorage.getItem('useAlternativeHitEffect') === 'true') {
-  useAlternativeHitEffect = true;
+const storedHitEffect = localStorage.getItem('useAlternativeHitEffect');
+if (storedHitEffect !== null) {
+  useAlternativeHitEffect = storedHitEffect === 'true';
 }
 
 const hitEffectPool = [];
