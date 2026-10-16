@@ -16,6 +16,7 @@ const resetSoundBtn = document.getElementById('reset-sound');
 const soundUpload = document.getElementById('soundUploadBtn');
 
 const toggleTargetBtn = document.getElementById('toggle-target');
+const toggleImageStyleBtn = document.getElementById('toggle-image-style');
 
 const scrollPreventer = e => e.preventDefault();
 
@@ -1211,6 +1212,10 @@ let useImageTarget = false;
 if (localStorage.getItem('useImageTarget') === 'true') {
     useImageTarget = true;
 }
+let useGkImageTarget = false;
+if (localStorage.getItem('useGkImageTarget') === 'true') {
+    useGkImageTarget = true;
+}
 
 // Adjustable target color (red mode)
 let targetColor = localStorage.getItem('aimTrainerTargetColor') || '#ff0000';
@@ -1383,9 +1388,11 @@ function updateTargetAppearance() {
         if (useImageTarget) {
             target.classList.add('image-mode');
             target.classList.remove('red-mode');
+            target.classList.toggle('gk-mode', useGkImageTarget);
         } else {
             target.classList.add('red-mode');
             target.classList.remove('image-mode');
+            target.classList.remove('gk-mode');
         }
     });
 
@@ -1400,11 +1407,18 @@ function updateTargetAppearance() {
     refreshPathColor();
 
     toggleTargetBtn.textContent = useImageTarget ? "Switch to Red" : "Switch to Image";
+    toggleImageStyleBtn.textContent = useGkImageTarget ? "Image: GK" : "Image: Wood";
 }
 
 toggleTargetBtn.addEventListener('click', function() {
     useImageTarget = !useImageTarget;
     localStorage.setItem('useImageTarget', useImageTarget);
+    updateTargetAppearance();
+});
+
+toggleImageStyleBtn.addEventListener('click', function() {
+    useGkImageTarget = !useGkImageTarget;
+    localStorage.setItem('useGkImageTarget', useGkImageTarget);
     updateTargetAppearance();
 });
 
